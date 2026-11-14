@@ -1,4 +1,4 @@
-"""Generate 30 authentic CTI reports from primary threat intelligence publishers.
+"""Generate 30 curated CTI demonstration reports modeled on primary threat intelligence advisories (CISA, Mandiant, CrowdStrike).
 Preserves report_id, source, publication_date, url, author, tlp, and multi-paragraph technical content.
 """
 
