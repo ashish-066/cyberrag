@@ -389,6 +389,47 @@ class TestIntegratedVerification(unittest.TestCase):
         # Verifier was never called with the irrelevant passage
         self.assertEqual(len(verifier.call_history), 0)
 
+    def test_11_multi_word_subject_object_claim_handling(self):
+        """Multi-word entity names (e.g. Volt Typhoon, Lazarus Group) must be fully parsed without truncation."""
+        pipeline = GraphRAGPipeline(retriever=MockRetriever(), verifier=MockVerifier())
+        subj, obj = pipeline._extract_subject_object("Volt Typhoon USES Chisel.")
+        self.assertEqual(subj, "Volt Typhoon")
+        self.assertEqual(obj, "Chisel")
+
+        subj2, obj2 = pipeline._extract_subject_object("Lazarus Group TARGETS Defense Industrial Base.")
+        self.assertEqual(subj2, "Lazarus Group")
+        self.assertEqual(obj2, "Defense Industrial Base")
+
+        subj3, obj3 = pipeline._extract_subject_object("Cobalt Strike EXPLOITS CVE-2021-44228.")
+        self.assertEqual(subj3, "Cobalt Strike")
+        self.assertEqual(obj3, "CVE-2021-44228")
+
+        # Test relevant passage retrieval for multi-word entity
+        relevant_dense = [
+            {
+                "report_id": "REP-CISA-01",
+                "segment_id": "REP-CISA-01::p2::s1",
+                "text": "Volt Typhoon actors utilized Chisel to establish reverse proxy tunnels.",
+                "source": "CISA",
+                "publication_date": "2023-05-24",
+                "score": 0.88,
+            }
+        ]
+        retriever = MockRetriever(graph_items=[], dense_items=relevant_dense)
+        verifier = MockVerifier(mode="entailment")
+        p2 = GraphRAGPipeline(retriever=retriever, verifier=verifier)
+
+        res = p2.ask(
+            "Volt Typhoon tool usage",
+            verify=True,
+            verification_claims=["Volt Typhoon USES Chisel."],
+        )
+        claims = res.get("verification", {}).get("claims", [])
+        self.assertEqual(len(claims), 1)
+        self.assertEqual(claims[0]["status"], "SUPPORTED")
+        self.assertEqual(claims[0]["supporting_count"], 1)
+        self.assertEqual(len(verifier.call_history), 1)
+
 
 if __name__ == "__main__":
     unittest.main()

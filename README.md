@@ -6,7 +6,7 @@
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.30+-FF4B4B.svg)](https://streamlit.io/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-EE4C2C.svg)](https://pytorch.org/)
 [![HuggingFace](https://img.shields.io/badge/Transformers-DeBERTa--v3-yellow.svg)](https://huggingface.co/cross-encoder/nli-deberta-v3-base)
-[![Tests: 59 Passing](https://img.shields.io/badge/Tests-59%20Passing-brightgreen.svg)](tests/)
+[![Tests: 60 Passing](https://img.shields.io/badge/Tests-60%20Passing-brightgreen.svg)](tests/)
 
 ---
 
@@ -183,7 +183,7 @@ Evaluated directly against the official Bosch Research train (`ner_train.jsonl`,
 ### 6.4 Unit Test Suite (100% Passing)
 The entire test suite covers all pipeline stages (evaluated live via `python run_tests.py`):
 ```
-Ran 59 tests in 91.793s
+Ran 60 tests in 73.464s
 OK
 ```
 *Note: Running `python run_tests.py` requires internet access on first run so the Hugging Face cross-encoder model weights (`cross-encoder/nli-deberta-v3-base`) can initialize and verify.*
@@ -223,7 +223,7 @@ Open `http://localhost:8501` in your browser. Select any of the 4 preset scenari
 
 ### Run the Test Suite
 ```bash
-# Run all 58 unit tests across all 13 test suites
+# Run all 60 unit tests across all 13 test suites
 python run_tests.py
 ```
 
@@ -285,3 +285,9 @@ To ensure scientific honesty and transparency, we document several known limitat
 * **MITRE ATT&CK**: The MITRE Corporation Enterprise ATT&CK Matrix (STIX 2.1).
 * **Sentence Transformers**: `sentence-transformers/all-MiniLM-L6-v2`.
 * **NLI Cross-Encoder**: `cross-encoder/nli-deberta-v3-base`.
+
+---
+
+## 12. License
+
+This project is licensed under the **Apache License, Version 2.0**. See the [LICENSE](LICENSE) file for complete terms. Third-party datasets (such as the Bosch Research AnnoCTR corpus under CC BY-SA 4.0) and external frameworks are attributed in [NOTICE.md](NOTICE.md).

@@ -107,10 +107,10 @@ class GraphRAGPipeline:
     def _extract_subject_object(self, claim: str) -> Tuple[Optional[str], Optional[str]]:
         """Extract subject and object strings from a relation claim."""
         claim_str = str(claim).strip()
+        # Strictly match only the four known CTI relation types in capitals
         m = re.match(
-            r"^\s*(.+?)\s+(?:USES|TARGETS|EXPLOITS|USES_TECHNIQUE|[A-Z_]{2,})\s+(.+?)\.?\s*$",
+            r"^\s*(.+?)\s+(?:USES|TARGETS|EXPLOITS|USES_TECHNIQUE)\s+(.+?)\.?\s*$",
             claim_str,
-            flags=re.IGNORECASE,
         )
         if m:
             subj = m.group(1).strip()

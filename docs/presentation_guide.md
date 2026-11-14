@@ -13,7 +13,7 @@
 | **02:30 – 05:00** | **System Architecture** | Multi-stage pipeline: Cyber NLP (NER + clause-aware relation extraction) $\rightarrow$ Typed Knowledge Graph $\rightarrow$ Hybrid Dense/BM25/Graph Retrieval $\rightarrow$ DeBERTa-v3 Cross-Encoder NLI $\rightarrow$ Multi-publisher Claim Aggregator $\rightarrow$ Context Resolver. |
 | **05:00 – 10:30** | **Live Interactive Platform Demo** | Run `app.py` through the 4 live demo scenarios (Corroboration $\rightarrow$ Temporal Supersedence $\rightarrow$ Duplicate Suppression $\rightarrow$ Dynamic Graph Expansion). |
 | **10:30 – 12:30** | **Core Research Contributions** | 1) Clause-aware extraction with vendor & spatial trigger suppression; 2) Intra-publisher duplicate passage detection; 3) 4-tier CTI contradiction taxonomy (`TEMPORAL_SUPERSEDENCE`, `CAMPAIGN_DIVERGENCE`, `GENUINE_ATTRIBUTION_DISPUTE`); 4) Structured provenance-grounded evidence reporting. |
-| **12:30 – 15:00** | **Evaluation Metrics & Q&A** | 1,400 graph nodes, 329 edges, 374 validated assertions, 5,991 corpus segments, 59/59 passing unit tests, and real-world AnnoCTR empirical benchmark evaluation. |
+| **12:30 – 15:00** | **Evaluation Metrics & Q&A** | 1,400 graph nodes, 329 edges, 374 validated assertions, 5,991 corpus segments, 60/60 passing unit tests, and real-world AnnoCTR empirical benchmark evaluation. |
 
 ---
 
@@ -67,6 +67,9 @@ streamlit run app.py
 1. **Select**: `Preset 4: Novel Threat Intelligence (Sandworm & Cyclops Blink - Dynamic Graph Expansion)`.
 2. **Click**: `🚀 Ingest, Update Graph & Verify`.
 3. **What to highlight on screen**:
+   * **Verification Cards (False Contradiction Prevention)**:
+     - All 3 newly extracted claims (`Sandworm USES Cyclops Blink`, `Sandworm TARGETS Energy Sector`, `Sandworm TARGETS Ukraine`) evaluate to **`⚪ NO EVIDENCE IN CORPUS`** (`INSUFFICIENT_EVIDENCE`).
+     - **Explain to committee**: *"Because Sandworm and Cyclops Blink are novel entities not present in the historical 104-report corpus, our entity-aware retrieval filter prevents unrelated corpus passages (e.g., Taurus sandbox evasion) from reaching the NLI model and falsely triggering high-confidence contradictions. The system correctly acknowledges zero prior baseline evidence rather than fabricating a conflict."*
    * **Right Panel (Graph Expansion)**:
      - Metrics display: **`Total Nodes: 1,402 (+2 New Nodes)`**, **`Total Edges: 334 (+5 New Edges)`**.
      - Point to the **✦ Glowing Neon Cyan (`#00f5d4`) Diamond Nodes** for `Sandworm` and `Cyclops Blink`.
@@ -119,4 +122,4 @@ When presenting evaluation results, distinguish between evaluation settings:
 3. **Unseen CTI Generalization**:
    * Evaluated on 4 novel threat reports: **F1 = 0.9200** with **100% provenance metadata compliance**.
 4. **Unit Test Suite**:
-   * **59/59 unit tests passing** across 13 test suites in ~92 seconds (`python run_tests.py`).
+   * **60/60 unit tests passing** across 13 test suites (`python run_tests.py`).

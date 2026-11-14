@@ -1,6 +1,6 @@
 """Master Test Runner for CyberRAG.
 
-Discovers and executes all 59 unit tests across all test suites:
+Discovers and executes all 60 unit tests across all test suites:
 - test_preprocessor.py: Indicator refanging, unicode normalization, segmentation provenance
 - test_ner.py: Entity normalization and gazetteer extraction
 - test_relation_extractor.py: Typed relationship extraction
