@@ -1,216 +1,314 @@
-# CyberRAG — Person 1: Data + Cyber NLP + Knowledge Graph
+# CyberRAG: Provenance-Preserving CTI Knowledge Graph & Verification Platform
 
-> **Main Responsibility**: Turn raw Cyber Threat Intelligence (CTI) reports into structured cybersecurity knowledge.
+> **Graph-Augmented Retrieval, Cross-Encoder NLI Evidence Verification, and Context-Aware Contradiction Resolution for Cyber Threat Intelligence**
 
-This repository implements the production-grade, audited pipeline for **Person 1** in the CyberRAG system:
-
-1. **Dataset Selection & Ingestion**: 104 authentic CTI reports (157,231 words) reconstructed directly from the official **Bosch Research AnnoCTR Corpus** (LREC-COLING 2024) token sequences with complete provenance metadata (**Report ID**, **Source**, **Paragraph/Sentence ID & Index**, **Publication Date**). All fabricated external URLs have been removed (`url: null`), citing the verified source repository.
-2. **Text Cleaning & Preprocessing**: Refanging indicators (`hxxp[:]//`, `[.]`, `[:]`, `[@]`), unicode NFKC normalization, boilerplate stripping, and paragraph/sentence segmentation preserving full document provenance across 2,698 paragraphs and 5,991 sentences.
-3. **Cybersecurity Named Entity Recognition (NER) & Disambiguation**:
-   - **Threat Actors** (e.g., Volt Typhoon, APT29, APT28, Lazarus Group, Sandworm, LockBit, FIN7, TA505)
-   - **Malware** (e.g., Emotet, TrickBot, AcidRain, HermeticWiper, CaddyWiper, Industroyer2, BlackCat, Carbanak)
-   - **Tools** (e.g., Cobalt Strike, Mimikatz, PsExec, Chisel, Fast Reverse Proxy, PowerShell, WMI, BloodHound)
-   - **CVEs** (e.g., CVE-2024-21887, CVE-2023-46805, CVE-2023-38831, CVE-2021-44228 Log4Shell, CVE-2021-34527 PrintNightmare)
-   - **Techniques** (MITRE ATT&CK: T1566 Phishing, T1190 Exploit Public-Facing Application, T1059 Command & Scripting, T1078 Valid Accounts, T1486 Data Encrypted for Impact)
-   - **Organizations** (e.g., Microsoft, NATO, Ukrainian Ministry of Defense, Energy Sector, Financial)
-   - **Locations** (e.g., United States, Ukraine, Poland, South Korea, Japan, Germany, United Kingdom)
-   - **Comparative NER Engine**: Baseline Gazetteer/Regex NER vs Contextual Machine Learning NER (`src/nlp/ml_ner.py`) vs Hybrid NER.
-   - **Official MITRE ATT&CK Registry**: 1,726 canonical entities ingested from STIX 2.1 Enterprise bundle (178 Threat Actors, 747 Malware, 95 Tools, 706 Techniques).
-4. **Clause-Aware Semantic Relationship Extraction**:
-   - `USES`: Threat Actor / Malware &rarr; Malware / Tool (45 instances)
-   - `TARGETS`: Threat Actor / Malware &rarr; Organization / Location (63 instances)
-   - `EXPLOITS`: Threat Actor / Malware / Tool &rarr; CVE (4 instances)
-   - `USES_TECHNIQUE`: Threat Actor / Malware &rarr; Technique (80 instances)
-   - **Quality Features**: Intervening subject blocking, coordinate action clause blocking, passive voice inversion (`[CVE] was exploited by [Actor]`), localized predicate negation filtering (`did not deploy`), and reporting vendor attribution filtering.
-5. **Initial Cyber Knowledge Graph Construction**:
-   - In-memory `NetworkX` MultiDiGraph with **428 unique nodes** and **165 consolidated edges** (carrying 192 sentence-level relation evidence instances).
-   - Graph exports:
-     - `data/knowledge_graph/cyber_kg.json` (Node-link JSON with top-level scalar provenance fields)
-     - `data/knowledge_graph/cyber_kg.graphml` (GraphML for Gephi & Cytoscape)
-     - `data/knowledge_graph/import_kg.cypher` (Ready-to-run Neo4j Cypher script with schema constraints and `MERGE` statements)
-   - Extended Edge Metadata: `polarity: 'positive'`, `observation_time`, `scope: 'sentence_level'`, `confidence_level: 'HIGH'/'MEDIUM'`, and discrete multi-report evidence lists.
-6. **Dual Evaluation Framework**:
-   - **Independent Real-World AnnoCTR Benchmark**: Evaluated against the official Bosch Research train (`ner_train.jsonl`, 70 reports, 7,570 sentences) and test (`ner_test.jsonl`, 34 reports, 3,059 sentences) splits with strictly **0% document overlap and zero leakage**.
-   - **Synthetic Controlled Challenge Benchmark**: 50-sentence synthetic benchmark (`data/benchmark/gold_standard_annotations.json`) evaluated under **Report-Level GroupKFold Cross-Validation (Leave-One-Report-Out)**.
-   - **Genuine 100-Relation Human Audit**: A 100-relation stratified sample drawn directly from `data/relations/extracted_relations.json` on the 104 ingested reports, verifying 100/100 report ID, sentence ID, and verbatim evidence text matches.
-7. **Graph Visualizations**:
-   - **Interactive HTML Graph Explorer** (`outputs/visualizations/cyber_knowledge_graph.html`): Real-time node search, category filter pills, threat actor focus dropdown, evidence inspector drawer, physics toggle.
-   - **Static High-Resolution Diagrams**:
-     - `full_knowledge_graph.png`: Multi-relational network overview
-     - `threat_actor_network.png`: Threat actor capabilities and target map
-     - `cve_exploit_network.png`: Vulnerability exploitation bipartite graph
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-1.30+-FF4B4B.svg)](https://streamlit.io/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-EE4C2C.svg)](https://pytorch.org/)
+[![HuggingFace](https://img.shields.io/badge/Transformers-DeBERTa--v3-yellow.svg)](https://huggingface.co/cross-encoder/nli-deberta-v3-base)
+[![Tests: 58 Passing](https://img.shields.io/badge/Tests-58%20Passing-brightgreen.svg)](tests/)
 
 ---
 
-## Architecture & Directory Layout
+## 1. Executive Summary & Core Motivation
+
+Cyber Threat Intelligence (CTI) analysis requires synthesizing complex, multi-source reporting to track threat actors, malware strains, exploited vulnerabilities (CVEs), and attack infrastructure. However, deploying standard Large Language Models (LLMs) and naive Retrieval-Augmented Generation (RAG) pipelines in CTI introduces severe operational risks:
+
+1. **Hallucination & Ungrounded Triples**: Standard LLMs infer non-existent threat actor relationships or fabricate CVE-malware links without verifiable textual grounding.
+2. **False Consensus from Duplicate Reporting**: In open-source CTI, multiple reporting vendors frequently syndicate, quote, or rewrite the exact same underlying sentence. Standard vector retrieval aggregates these duplicates, mistaking repetitive syndication for independent corroborating consensus.
+3. **Temporal Naivety in Contradiction Handling**: Threat intelligence changes dynamically over time. When an earlier report (e.g., October 2020) states *"Emotet delivers TrickBot"* and a later post-takedown report (e.g., May 2021) observes that Emotet infrastructure ceased distributing TrickBot, standard NLI and semantic retrieval flag this as a factual contradiction (`CONTRADICTED`), rather than recognizing an operational shift (**Temporal Supersedence**).
+4. **Attribution Drift & Vendor Targeting**: Naive relationship extractors frequently mistake reporting cybersecurity vendors (e.g., *Mandiant*, *CrowdStrike*, *Zscaler*) or spatial descriptors (e.g., *across Europe*) for threat actors or victim targets.
+
+**CyberRAG** solves these challenges by combining an audited, typed **Cyber Knowledge Graph**, **Hybrid Dense/Sparse/Graph Retrieval**, cross-encoder **Natural Language Inference (NLI)** verification with duplicate-aware provenance tracking, and an automated **Context-Aware Contradiction Resolver**.
+
+---
+
+## 2. Integrated System Architecture
+
+CyberRAG operates as a multi-stage, provenance-preserving pipeline:
+
+```mermaid
+flowchart TD
+    subgraph Ingestion ["1. Ingestion & Preprocessing"]
+        A[Raw CTI Reports / PDFs / TXT] --> B[Refanging: hxxp, [.], [:]]
+        B --> C[Sentence & Paragraph Segmentation with Provenance IDs]
+    end
+
+    subgraph NLP ["2. Cyber NLP & Entity Extraction"]
+        C --> D[Gazetteer & Contextual ML NER]
+        D --> E[MITRE ATT&CK Registry Linking: 1,726 Canonical Entities]
+        E --> F[Clause-Aware Semantic Relation Extractor v2]
+        F -->|Vendor & Spatial Suppression| G[Negative & Positive Assertions]
+    end
+
+    subgraph KG ["3. Knowledge Graph Engine"]
+        G --> H[(Baseline Trusted KG: 1,400 Nodes, 329 Edges)]
+        H --> I[Dynamic In-Memory Graph Expansion for New Uploads]
+    end
+
+    subgraph Retrieval ["4. Hybrid Graph-Augmented Retrieval"]
+        J[Analyst Hypothesis / Query] --> K1[Dense Retrieval: all-MiniLM-L6-v2]
+        J --> K2[Sparse Keyword Retrieval: BM25Okapi]
+        J --> K3[Entity-Linked Graph Neighborhood Traversal]
+        K1 & K2 & K3 --> L[Reciprocal Rank Fusion & Duplicate Detection]
+    end
+
+    subgraph Verification ["5. Verification & Context Resolution"]
+        L --> M[Cross-Encoder NLI Verifier: DeBERTa-v3]
+        M --> N[Claim Aggregator: Corroboration & Duplicate Suppression]
+        N --> O[Context Resolver: Temporal / Campaign / Attribution Logic]
+    end
+
+    subgraph Interface ["6. Analyst UI"]
+        I & O --> P[Interactive Streamlit Dashboard with Real-Time PyVis Graph]
+    end
+```
+
+### Component Breakdown
+| Subsystem | Modules | Core Responsibility |
+| :--- | :--- | :--- |
+| **Data Ingestion** | `src/dataset/`, `src/preprocessor/` | Defangs network indicators (`hxxp[:]//`), performs NFKC unicode normalization, and segments text into 7,570 segments with immutable provenance metadata (`report_id`, `source`, `publication_date`, `sentence_id`). |
+| **Cyber NLP** | `src/nlp/` | Extracts 7 entity categories (*ThreatActor, Malware, Tool, Vulnerability, Technique, Organization, Location*). Resolves aliases to 1,726 canonical MITRE ATT&CK entries. Clause-aware extractor extracts `USES`, `TARGETS`, `EXPLOITS`, and `USES_TECHNIQUE` while filtering reporting vendors and spatial prepositions. Preserves negative assertions (`polarity="negative"`) with full evidence grounding. |
+| **Knowledge Graph** | `src/graph/` | Manages the baseline 1,400-node, 329-edge NetworkX Knowledge Graph. Supports in-memory dynamic expansion for live uploads without corrupting the baseline on disk. |
+| **Hybrid Retrieval** | `src/retrieval.py`, `src/graph_retrieval.py` | Combines 384-dimensional dense semantic embeddings (`sentence-transformers/all-MiniLM-L6-v2`), BM25 token matching, and entity-linked graph assertion lookups. |
+| **Evidence Verification** | `src/verification/` | Employs `cross-encoder/nli-deberta-v3-base` to evaluate hypothesis alignment against retrieved evidence. Softmax scores represent textual alignment rather than empirical certainty. Suppresses intra-vendor duplicate passages. |
+| **Context Resolver** | `src/verification/context_resolver.py` | Classifies conflicting intelligence into a 4-tier CTI contradiction taxonomy: `TEMPORAL_SUPERSEDENCE`, `CAMPAIGN_DIVERGENCE`, `GENUINE_ATTRIBUTION_DISPUTE`, or `AMBIGUOUS_CONFLICT`. |
+| **Web Dashboard** | `app.py`, `src/ingestion.py` | Full-stack interactive Streamlit application with custom file upload (PDF/TXT), live entity linking, dynamic graph visualization (PyVis physics engine), and expandable verification cards. |
+
+---
+
+## 3. Knowledge Graph & Corpus Scale
+
+The integrated baseline system operates over the following verified corpus metrics:
+
+| Metric | Baseline Count | Description |
+| :--- | :--- | :--- |
+| **Baseline Graph Nodes** | **1,400** | Canonical threat actors, malware families, tools, CVEs, techniques, and sectors. |
+| **Baseline Graph Edges** | **329** | Consolidated typed relational edges carrying multi-source provenance metadata. |
+| **Validated Assertions** | **374** | Discrete sentence-grounded relationship assertions with publication dates and sources. |
+| **Corpus Text Segments** | **7,570** | Paragraph- and sentence-level text chunks indexed for dense and BM25 retrieval. |
+| **MITRE ATT&CK Registry** | **1,726** | Canonical definitions ingested from STIX 2.1 Enterprise bundle (178 Actors, 747 Malware, 95 Tools, 706 Techniques). |
+| **Precomputed Embeddings** | **9.2 MB** | 384-dim dense embeddings (`data/segment_embeddings_minilm.npy`) enabling instant cold starts. |
+
+---
+
+## 4. Key Architectural Decisions & Methodological Rigor
+
+### A. Structured Evidence Reporting vs. Unconstrained LLM Generation
+In high-stakes cybersecurity operations, unconstrained generative language models pose significant liability due to subtle hallucinations and ungrounded embellishment. CyberRAG's `AnswerGenerator` is deliberately designed to produce **structured, evidence-grounded intelligence syntheses** citing exact report IDs, sources, publication dates, and verbatim premise sentences, rather than generating free-form, unverified text.
+
+### B. Precise Graph Retrieval (Entity-Linked Traversal)
+Graph retrieval in CyberRAG is implemented as **entity-linked assertion lookup and multi-hop neighborhood traversal**. It indexes entities identified in the query, traverses adjacent validated graph assertions, and pulls the underlying verbatim evidence sentences. It does not claim unbounded semantic graph reasoning; every graph triple is strictly bound to its ingested source sentence.
+
+### C. NLI Alignment vs. Calibrated Factual Truth
+Neural Natural Language Inference models output softmax probability distributions representing whether premise text *linguistically entails, contradicts, or remains neutral* to a hypothesis. CyberRAG explicitly treats these as **semantic textual alignment scores**, not calibrated probabilities of real-world historical fact. The platform separates linguistic NLI verification from the contextual domain logic that assesses source corroboration and temporal relevance.
+
+### D. Multi-Publisher Corroboration & Duplicate Suppression
+CTI vendors frequently syndicate identical sentences or cite the same primary disclosures. If two retrieved passages share identical text or originate from the same reporting publisher, CyberRAG flags them as duplicates. Rather than claiming "8 corroborating sources," the platform counts distinct reporting vendors (e.g., *Intel 471* and *Zscaler*) to prevent false consensus.
+
+### E. Non-Destructive In-Memory Graph Expansion
+When an analyst uploads a custom PDF or TXT report in the Streamlit application:
+1. Cyber NLP extracts entities and relationships in real time.
+2. Extracted intelligence is merged into an **in-memory session copy** of the Knowledge Graph.
+3. Newly discovered entities glow in **neon cyan diamonds (`#00f5d4`)** on the canvas.
+4. The baseline Knowledge Graph on disk (`data/cti_knowledge_graph_trusted.json`) remains completely pristine and immutable.
+
+---
+
+## 5. Demonstration Scenarios (Streamlit Presets)
+
+The platform includes four pre-configured operational scenarios validating distinct capabilities:
 
 ```
-cyberrag/
-├── data/
-│   ├── annoctr_source/           # Official AnnoCTR dataset splits (Bosch Research)
-│   │   ├── ner_train.jsonl       # Official train split (70 reports, 7,570 sentences)
-│   │   ├── ner_test.jsonl        # Official test split (34 reports, 3,059 sentences)
-│   │   └── ner_dev.jsonl         # Official dev split (20 reports, 1,550 sentences)
-│   ├── raw/                      # 104 reconstructed CTI reports with honest provenance
-│   │   └── cti_reports.json
-│   ├── processed/                # Preprocessed paragraphs/sentences with provenance
-│   │   └── preprocessed_cti.json # 2,698 paragraphs, 5,991 sentences
-│   ├── entities/                 # Extracted and normalized entities (5,864 mentions)
-│   │   └── extracted_entities.json
-│   ├── relations/                # Extracted relationship instances (192 instances)
-│   │   └── extracted_relations.json
-│   ├── knowledge/                # Official MITRE ATT&CK STIX 2.1 registry (1,726 items)
-│   │   └── mitre_attack_registry.json
-│   ├── knowledge_graph/          # Graph exports (428 nodes, 165 consolidated edges)
-│   │   ├── cyber_kg.json
-│   │   ├── cyber_kg.graphml
-│   │   └── import_kg.cypher
-│   └── benchmark/                # Evaluation benchmarks
-│       ├── annoctr_train_split.json    # Official AnnoCTR training split (2,840 sents)
-│       ├── annoctr_gold_standard.json  # Official AnnoCTR test split (100 sents)
-│       └── gold_standard_annotations.json # 50-sentence synthetic challenge benchmark
-├── src/
-│   ├── dataset/                  # Dataset loading & schema validation
-│   │   ├── loader.py
-│   │   └── downloader.py
-│   ├── preprocessor/             # Refanging, unicode cleaning, segmentation
-│   │   ├── cleaner.py
-│   │   └── segmenter.py
-│   ├── nlp/                      # Cyber NER, ML NER, normalizer & relation extractor
-│   │   ├── gazetteer.py
-│   │   ├── normalizer.py
-│   │   ├── ml_ner.py
-│   │   ├── ner_engine.py
-│   │   ├── relation_extractor.py
-│   │   ├── evaluator.py
-│   │   ├── annoctr_evaluator.py
-│   │   └── unseen_evaluator.py
-│   ├── graph/                    # Graph builder, exporters & analytics
-│   │   ├── builder.py
-│   │   ├── exporter.py
-│   │   └── analytics.py
-│   └── visualization/            # Interactive HTML & static matplotlib plots
-│       ├── interactive_html.py
-│       └── static_plotter.py
-├── outputs/
-│   ├── visualizations/           # HTML and PNG visualizations
-│   │   ├── cyber_knowledge_graph.html
-│   │   ├── full_knowledge_graph.png
-│   │   ├── threat_actor_network.png
-│   │   └── cve_exploit_network.png
-│   └── reports/                  # Summary intelligence reports & benchmarks
-│       ├── cti_kg_summary.json
-│       ├── evaluation_benchmark.json
-│       ├── annoctr_ner_evaluation.json
-│       ├── relation_sample_100_audit.json
-│       └── unseen_reports_evaluation.json
-├── scripts/                      # Construction and audit scripts
-│   ├── reconstruct_annoctr_reports.py
-│   ├── build_official_annoctr_splits.py
-│   └── generate_genuine_100_relation_audit.py
-├── tests/                        # Full unit and integration test suite
-│   ├── test_preprocessor.py
-│   ├── test_ner.py
-│   ├── test_relation_extractor.py
-│   └── test_knowledge_graph.py
-├── run_pipeline.py               # Master CLI pipeline runner
-├── verify_pipeline.py            # Automated quality & provenance auditor
-├── run_tests.py                  # Test runner (13 unit and integration tests)
-└── requirements.txt
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│ Preset 1: APT28 Campaign Targeting NATO (Corroborated Multi-Source Intelligence)      │
+│ • Validates: Clause-aware extraction with spatial trigger suppression.                 │
+│ • Result: APT28 USES Zebrocy (SUPPORTED); APT28 TARGETS NATO (SUPPORTED).              │
+│ • Detail: "across Europe" suppressed from spatial targeting to prevent false targets.  │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ Preset 2: Emotet Infrastructure Takedown (Temporal Supersedence Resolution)            │
+│ • Validates: Context-aware contradiction resolution over time.                         │
+│ • Proposition: "Emotet USES TrickBot."                                                 │
+│ • Historical Evidence (2020-10-15, Intel 471): Entailment (Emotet distributed TrickBot)│
+│ • Later Evidence (2021-05-20, Europol/CISA): Contradiction (Post-seizure disruption)    │
+│ • Result: CONFLICTING_EVIDENCE -> TEMPORAL_SUPERSEDENCE (+217 days, CONTRA_LATER).     │
+│ • Interpretation: Operational shift over time, not a historical contradiction.        │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ Preset 3: TrickBot-Emotet Malware Delivery Partnership (Duplicate Suppression)         │
+│ • Validates: Distinguishing independent vendor consensus from duplicated text.         │
+│ • Result: SUPPORTED across 2 distinct publishers (Intel 471 & Zscaler).                │
+│ • Detail: 3 duplicated text passages identified and suppressed from consensus count.   │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ Preset 4: Sandworm & Cyclops Blink (Novel Threat Intel & Dynamic Graph Expansion)      │
+│ • Validates: Safe, non-destructive ingestion of novel entities.                        │
+│ • Result: In-memory expansion (+2 nodes, +5 edges).                                   │
+│ • Detail: Novel nodes render in glowing neon cyan (#00f5d4); baseline remains frozen.  │
+└────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Quick Execution Commands
+## 6. Evaluation Framework & Benchmark Results
 
-### 1. Run Complete Pipeline
+CyberRAG evaluates its components across distinct, clearly documented benchmark settings:
+
+### A. Cybersecurity NER Performance
+To maintain scientific transparency, performance metrics must be distinguished across evaluation protocols:
+
+| Benchmark Setting | Protocol | Precision | Recall | Overall F1 | Notes |
+| :--- | :--- | :---: | :---: | :---: | :--- |
+| **Synthetic Controlled Challenge** | GroupKFold (Leave-One-Report-Out) | 0.9850 | 0.9770 | **0.9809** | 50-sentence controlled challenge benchmark with high canonical entity density. |
+| **Official AnnoCTR Real-World Benchmark** | Official Bosch Research Split (Zero Leakage) | 0.4498 | 0.4300 | **0.4396** | 3,059 complex real-world CTI sentences. Demonstrates a **+28.5% relative F1 gain** over dictionary gazetteers (0.3421). |
+| **Unseen CTI Generalization** | Zero-Shot Evaluation on 4 Fresh Reports | 0.9388 | 0.9020 | **0.9200** | 4 novel industry threat reports (49 entity mentions). 100% provenance compliance. |
+
+### B. Unit Test Suite (100% Passing)
+The entire test suite covers all pipeline stages:
+```
+Ran 58 tests in 69.302s
+OK
+```
+* `test_preprocessor.py`: Indicator refanging, unicode normalization, segmentation provenance.
+* `test_ner.py`: Entity normalization and gazetteer extraction.
+* `test_relation_extractor.py`: Clause-aware typed relation extraction (`USES`, `TARGETS`, `EXPLOITS`).
+* `test_knowledge_graph.py`: Graph construction, export schemas, and network analytics.
+* `test_annoctr.py`: Real-world AnnoCTR empirical benchmark evaluation.
+* `test_unseen_cti.py`: Out-of-sample CTI generalization and novel entity discovery.
+* `test_retrieval_helpers.py`: Retrieval metrics (Recall@K, MRR).
+* `test_claim_aggregation.py`: Evidence aggregation and multi-publisher consensus.
+* `test_provenance.py`: Sentence- and paragraph-level metadata persistence.
+* `test_nli_verifier.py`: DeBERTa cross-encoder verification with raw softmax scores.
+* `test_context_resolver.py`: 4-tier contradiction taxonomy classification.
+* `test_integrated_verification.py`: End-to-end fused GraphRAG verification.
+* `test_negative_assertions_temporal.py`: Provenance-preserving negative assertion retention and temporal supersedence (+217 days).
+* `test_v2_relation_regression.py`: Regression testing for vendor and spatial suppression.
+
+---
+
+## 7. Installation & Quickstart
+
+### Prerequisites
+* Python 3.10+ (tested on Python 3.10, 3.11)
+* Git
+
+### Local Setup
 ```bash
-python run_pipeline.py
+# 1. Clone repository
+git clone https://github.com/joshi-006/cyberrag.git
+cd cyberrag
+
+# 2. Create and activate a virtual environment
+python -m venv venv
+# On Windows:
+.\venv\Scripts\activate
+# On Linux/macOS:
+source venv/bin/activate
+
+# 3. Install dependencies
+pip install --upgrade pip
+pip install -r requirements.txt
 ```
 
-### 2. Run Automated Verification & Quality Audit
+### Launch the Streamlit Platform
 ```bash
-python verify_pipeline.py
+streamlit run app.py
 ```
-*Validates entity coverage across all 7 categories, trigger grounding on 100% of relations, zero invalid schemas, and zero provenance gaps.*
+Open `http://localhost:8501` in your browser. Select any of the 4 preset scenarios or upload an arbitrary CTI PDF/TXT report.
 
-### 3. Run Test Suite (13/13 Tests Passing)
+### Run the Test Suite
 ```bash
+# Run all 58 unit tests across all 13 test suites
 python run_tests.py
 ```
 
-### 4. Run Independent AnnoCTR Benchmark Evaluation
+### Run Full Data & Knowledge Graph Verification
 ```bash
-python -m src.nlp.annoctr_evaluator
-```
-
-### 5. Run Genuine 100-Relation Sample Human Audit
-```bash
-python scripts/generate_genuine_100_relation_audit.py
-```
-
-### 6. Run Synthetic Controlled Challenge Benchmark (Report-Level GroupKFold)
-```bash
-python -m src.nlp.evaluator
+python verify_pipeline.py
 ```
 
 ---
 
-## Metrics & Terminology Clarification (104 Authentic CTI Reports Ingested)
+## 8. Docker Deployment
 
-| Concept | Count | Description |
-| :--- | :---: | :--- |
-| **Ingested CTI Reports** | **104** | Authentic CTI reports (157,231 words) reconstructed from the Bosch Research AnnoCTR corpus token sequences with honest provenance metadata (`url: null`). |
-| **Preprocessed Sentences** | **5,991** | Tokenized sentences across 2,698 paragraphs in 104 authentic reports, preserving complete sentence-level provenance metadata. |
-| **Extracted Entity Mentions** | **5,864** | Entity mentions across sentences (Techniques: 2,806, Malware: 897, Tools: 775, Locations: 765, ThreatActors: 326, Organizations: 259, CVEs: 36). |
-| **Extracted Relation Instances** | **192** | Grounded semantic relation assertions extracted directly from CTI text (`USES_TECHNIQUE`: 80, `TARGETS`: 63, `USES`: 45, `EXPLOITS`: 4). |
-| **Consolidated Knowledge Graph Edges** | **165** | Unique directed multi-relational edges between entity nodes in the consolidated Knowledge Graph, consolidating multi-report citations into evidence lists. |
-| **Unique Graph Nodes** | **428** | Consolidated canonical entities in the Cyber Knowledge Graph across all 7 categories. |
-| **Official MITRE ATT&CK Knowledge Registry** | **1,726** | Canonical entities ingested from official MITRE STIX 2.1 Enterprise bundle: 178 Threat Actors, 747 Malware, 95 Tools, 706 Techniques. |
+CyberRAG includes a containerized build for cloud environments (AWS ECS, GCP Cloud Run, Azure App Service, or private servers):
 
----
+```bash
+# Build Docker image
+docker build -t cyberrag .
 
-## Independent Real-World AnnoCTR Benchmark Results
-
-> Full evaluation report saved to [`outputs/reports/annoctr_ner_evaluation.json`](file:///c:/Users/njosh/Desktop/cyberrag/outputs/reports/annoctr_ner_evaluation.json).  
-> Evaluates models against **100 independent, human-annotated sentences** from 34 held-out authentic test reports (171 gold entities across 7 categories) from official `ner_test.jsonl`. The contextual ML NER model was trained strictly on the official AnnoCTR training split of **2,840 entity-bearing sentences** (63,234 tokens across 70 disjoint reports) from official `ner_train.jsonl`, guaranteeing strictly **0% document overlap and zero test leakage**.
-
-| Model / Architecture | Precision | Recall | F1 Score | Key Findings & Error Modes on Real CTI Text |
-| :--- | :---: | :---: | :---: | :--- |
-| **Baseline Gazetteer NER** | **0.5806** | **0.4211** | **0.4881** | High specificity on known static aliases (1.0 precision on ThreatActor and Location), but lower recall (42.1%) due to out-of-vocabulary entities (e.g. AcidRain, DEWMODE, Mount Locker). |
-| **Hybrid Contextual ML NER** | **0.6071** | **0.5965** | **0.6018** | Successfully recovers novel entities without gazetteer entries, increasing True Positives from 72 to 102 (+41.7% yield). Demonstrates genuine generalization over baseline gazetteer on authentic real-world CTI text (+11.37 F1 points). |
-
-### Category Breakdown (Hybrid Contextual ML NER on Real-World Text):
-- **Location**: Precision: **0.9394** | Recall: **0.9394** | F1: **0.9394**
-- **Malware**: Precision: **0.9048** | Recall: **0.6129** | F1: **0.7308**
-- **ThreatActor**: Precision: **0.8462** | Recall: **0.5000** | F1: **0.6286**
-- **Organization**: Precision: **0.6667** | Recall: **0.5294** | F1: **0.5902**
-- **Tool**: Precision: **0.4583** | Recall: **0.5000** | F1: **0.4783**
-- **Technique**: Precision: **0.2400** | Recall: **0.4138** | F1: **0.3038**
-- **Overall**: Precision: **0.6071** | Recall: **0.5965** | F1: **0.6018**
+# Run container (binds to port 8501)
+docker run -d -p 8501:8501 --name cyberrag_app cyberrag
+```
+Access the application at `http://localhost:8501`.
 
 ---
 
-## Genuine 100-Relation Sample Human Audit
+## 9. Streamlit Community Cloud Deployment
 
-> Full audit report saved to [`outputs/reports/relation_sample_100_audit.json`](file:///c:/Users/njosh/Desktop/cyberrag/outputs/reports/relation_sample_100_audit.json).  
-> A stratified random sample of **100 relation instances** (seed=42) drawn directly from `data/relations/extracted_relations.json` on the 104 ingested reports, evaluated against verbatim sentence evidence text.
+To deploy this repository on [Streamlit Community Cloud](https://share.streamlit.io/):
+1. Fork or push this repository to your GitHub account.
+2. Sign in to **Streamlit Community Cloud**.
+3. Click **"New app"** and specify:
+   * **Repository**: `your-username/cyberrag`
+   * **Branch**: `main`
+   * **Main file path**: `app.py`
+4. Click **"Deploy!"**. The platform will install dependencies from `requirements.txt` and launch automatically.
 
-### Provenance Integrity:
-- **`report_id` matches in `data/raw/cti_reports.json`**: **100 / 100 (100.0%)**
-- **`sentence_id` matches in `data/processed/preprocessed_cti.json`**: **100 / 100 (100.0%)**
-- **`evidence_text` exact verbatim matches**: **100 / 100 (100.0%)**
-- **Unique CTI Reports Represented**: **36 distinct reports**
+---
 
-### Empirical Precision by Relation Type:
+## 10. Repository Structure
 
-| Relation Type | Sampled Count | True Positives | False Positives | Empirical Precision |
-| :--- | :---: | :---: | :---: | :---: |
-| **`EXPLOITS`** | 4 | 4 | 0 | **100.0%** |
-| **`TARGETS`** | 34 | 34 | 0 | **100.0%** |
-| **`USES_TECHNIQUE`** | 30 | 30 | 0 | **100.0%** |
-| **`USES`** | 32 | 31 | 1 | **96.9%** |
-| **Overall Relational Precision** | **100** | **99** | **1** | **99.0%** |
+```
+cyberrag/
+├── app.py                             # Streamlit web dashboard & interactive UI
+├── Dockerfile                         # Container build recipe
+├── .dockerignore                      # Docker context exclusion rules
+├── .gitignore                         # Git exclusion rules
+├── requirements.txt                   # Production Python dependencies
+├── README.md                          # Comprehensive system documentation
+├── run_tests.py                       # Unified test runner (discovers all 58 unit tests)
+├── run_pipeline.py                    # Master pipeline runner (ingestion -> NLP -> KG)
+├── verify_pipeline.py                 # Pipeline data quality & provenance validator
+├── data/
+│   ├── cti_knowledge_graph_trusted.json  # Baseline Knowledge Graph (1,400 nodes, 329 edges)
+│   ├── processed_segments.jsonl       # Indexed text segments (7,570 segments)
+│   ├── segment_embeddings_minilm.npy  # Dense MiniLM vector embeddings (9.2 MB)
+│   ├── assertions.jsonl               # Validated relationship assertions (374 items)
+│   ├── knowledge/
+│   │   └── mitre_attack_registry.json # Canonical MITRE ATT&CK STIX 2.1 registry
+│   ├── annoctr_source/                # Official Bosch Research AnnoCTR corpus splits
+│   ├── benchmark/                     # Evaluation gold standards & test splits
+│   ├── unseen_reports/                # 4 novel CTI reports for zero-shot testing
+│   ├── raw/                           # Reconstructed CTI reports
+│   ├── processed/                     # Preprocessed CTI reports with paragraph/sentence IDs
+│   ├── entities/                      # Extracted entity mentions
+│   ├── relations/                     # Extracted relation instances
+│   └── knowledge_graph/               # GraphML, JSON, and Neo4j Cypher exports
+├── src/
+│   ├── answer_generator.py            # Structured provenance-grounded evidence synthesizer
+│   ├── context_builder.py             # Context window assembler
+│   ├── evaluation.py                  # Retrieval evaluation metrics (Recall@K, MRR)
+│   ├── evidence_fusion.py             # Reciprocal rank fusion & duplicate detection
+│   ├── graph_rag_pipeline.py          # Unified Hybrid GraphRAG pipeline orchestrator
+│   ├── graph_retrieval.py             # Entity-linked graph traversal & assertion lookup
+│   ├── hybrid_graph_rag.py            # Hybrid RAG facade interface
+│   ├── ingestion.py                   # In-memory graph expansion & live document ingestion
+│   ├── retrieval.py                   # Dense (MiniLM) and sparse (BM25) text retrieval
+│   ├── dataset/                       # Dataset loading and downloading utilities
+│   ├── preprocessor/                  # Indicator refanging, text cleaning, segmentation
+│   ├── nlp/                           # Gazetteer, ML NER, entity normalizer, relation extractor v2
+│   ├── graph/                         # NetworkX graph builder, exporter, analytics
+│   ├── verification/                  # DeBERTa NLI verifier, claim aggregator, context resolver
+│   └── visualization/                 # Interactive HTML (PyVis) and matplotlib plotters
+├── tests/                             # 13 test suites covering all 58 unit tests
+└── docs/
+    └── presentation_guide.md          # 15-minute defense script & live demo walkthrough
+```
 
-### Failure Mode Analysis:
-- **`UNGROUNDED_TOOL_ASSOCIATION` (1 instance)**: Tool `Cobalt Strike` was mentioned descriptively as an exemplar (`such as Cobalt Strike`) within a coordinate relative clause where the governing subject was an unlinked noun phrase (`the actors linked to Trickbot`), leading to false attribution to TrickBot malware.
+---
+
+## 11. Citation & Acknowledgments
+
+* **AnnoCTR Corpus**: Bosch Research, *AnnoCTR: A Dataset for Cyber Threat Intelligence Named Entity Recognition and Normalization* (LREC-COLING 2024).
+* **MITRE ATT&CK**: MITRE Corporation Enterprise ATT&CK Matrix (STIX 2.1).
+* **Sentence Transformers**: `sentence-transformers/all-MiniLM-L6-v2`.
+* **NLI Cross-Encoder**: `cross-encoder/nli-deberta-v3-base`.
