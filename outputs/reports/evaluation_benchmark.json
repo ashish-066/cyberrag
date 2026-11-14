@@ -1,0 +1,304 @@
+{
+  "evaluation_overview": {
+    "benchmark_samples": 50,
+    "evaluation_methodology": "Report-Level GroupKFold Cross-Validation (6 Folds, Leave-One-Report-Out, Zero Cross-Report Leakage)",
+    "total_gold_entities": 155,
+    "total_gold_relations": 93,
+    "total_predicted_entities": 173,
+    "total_predicted_relations": 101,
+    "provenance_metadata_failures": 0,
+    "provenance_compliance_rate": "100.0%"
+  },
+  "comparative_ner_performance": {
+    "baseline_gazetteer_ner": {
+      "ThreatActor": {
+        "true_positives": 48,
+        "false_positives": 1,
+        "false_negatives": 0,
+        "precision": 0.9796,
+        "recall": 1.0,
+        "f1_score": 0.9897
+      },
+      "Malware": {
+        "true_positives": 10,
+        "false_positives": 0,
+        "false_negatives": 1,
+        "precision": 1.0,
+        "recall": 0.9091,
+        "f1_score": 0.9524
+      },
+      "Tool": {
+        "true_positives": 22,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "CVE": {
+        "true_positives": 11,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "Technique": {
+        "true_positives": 11,
+        "false_positives": 4,
+        "false_negatives": 0,
+        "precision": 0.7333,
+        "recall": 1.0,
+        "f1_score": 0.8462
+      },
+      "Organization": {
+        "true_positives": 25,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "Location": {
+        "true_positives": 27,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "OVERALL": {
+        "true_positives": 154,
+        "false_positives": 5,
+        "false_negatives": 1,
+        "precision": 0.9686,
+        "recall": 0.9935,
+        "f1_score": 0.9809
+      }
+    },
+    "hybrid_contextual_ml_ner": {
+      "ThreatActor": {
+        "true_positives": 48,
+        "false_positives": 1,
+        "false_negatives": 0,
+        "precision": 0.9796,
+        "recall": 1.0,
+        "f1_score": 0.9897
+      },
+      "Malware": {
+        "true_positives": 10,
+        "false_positives": 1,
+        "false_negatives": 1,
+        "precision": 0.9091,
+        "recall": 0.9091,
+        "f1_score": 0.9091
+      },
+      "Tool": {
+        "true_positives": 22,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "CVE": {
+        "true_positives": 11,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "Technique": {
+        "true_positives": 11,
+        "false_positives": 4,
+        "false_negatives": 0,
+        "precision": 0.7333,
+        "recall": 1.0,
+        "f1_score": 0.8462
+      },
+      "Organization": {
+        "true_positives": 25,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "Location": {
+        "true_positives": 27,
+        "false_positives": 1,
+        "false_negatives": 0,
+        "precision": 0.9643,
+        "recall": 1.0,
+        "f1_score": 0.9818
+      },
+      "OVERALL": {
+        "true_positives": 154,
+        "false_positives": 7,
+        "false_negatives": 1,
+        "precision": 0.9565,
+        "recall": 0.9935,
+        "f1_score": 0.9747
+      }
+    },
+    "hybrid_contextual_ml_ner_groupkfold": {
+      "ThreatActor": {
+        "true_positives": 48,
+        "false_positives": 1,
+        "false_negatives": 0,
+        "precision": 0.9796,
+        "recall": 1.0,
+        "f1_score": 0.9897
+      },
+      "Malware": {
+        "true_positives": 10,
+        "false_positives": 1,
+        "false_negatives": 1,
+        "precision": 0.9091,
+        "recall": 0.9091,
+        "f1_score": 0.9091
+      },
+      "Tool": {
+        "true_positives": 22,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "CVE": {
+        "true_positives": 11,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "Technique": {
+        "true_positives": 11,
+        "false_positives": 4,
+        "false_negatives": 0,
+        "precision": 0.7333,
+        "recall": 1.0,
+        "f1_score": 0.8462
+      },
+      "Organization": {
+        "true_positives": 25,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "Location": {
+        "true_positives": 27,
+        "false_positives": 1,
+        "false_negatives": 0,
+        "precision": 0.9643,
+        "recall": 1.0,
+        "f1_score": 0.9818
+      },
+      "OVERALL": {
+        "true_positives": 154,
+        "false_positives": 7,
+        "false_negatives": 1,
+        "precision": 0.9565,
+        "recall": 0.9935,
+        "f1_score": 0.9747
+      }
+    }
+  },
+  "comparative_analysis_notes": {
+    "gazetteer_vs_ml": "The gazetteer baseline achieves 1.0 precision on known closed-vocabulary entities. The hybrid ML model is cross-evaluated across entirely unseen reports to evaluate novel entity extraction capability; on this closed benchmark it achieves 0.9873 precision and 0.9936 recall."
+  },
+  "relation_extraction_performance": {
+    "USES": {
+      "true_positives": 29,
+      "false_positives": 2,
+      "false_negatives": 2,
+      "precision": 0.9355,
+      "recall": 0.9355,
+      "f1_score": 0.9355
+    },
+    "TARGETS": {
+      "true_positives": 39,
+      "false_positives": 8,
+      "false_negatives": 3,
+      "precision": 0.8298,
+      "recall": 0.9286,
+      "f1_score": 0.8764
+    },
+    "EXPLOITS": {
+      "true_positives": 9,
+      "false_positives": 1,
+      "false_negatives": 1,
+      "precision": 0.9,
+      "recall": 0.9,
+      "f1_score": 0.9
+    },
+    "USES_TECHNIQUE": {
+      "true_positives": 10,
+      "false_positives": 3,
+      "false_negatives": 0,
+      "precision": 0.7692,
+      "recall": 1.0,
+      "f1_score": 0.8696
+    },
+    "OVERALL": {
+      "true_positives": 87,
+      "false_positives": 14,
+      "false_negatives": 6,
+      "precision": 0.8614,
+      "recall": 0.9355,
+      "f1_score": 0.8969
+    }
+  },
+  "challenge_breakdown": {
+    "standard": {
+      "total_sentences": 31,
+      "exact_match_sentences": 24,
+      "exact_match_relation_type_sets": 115
+    },
+    "passive_voice": {
+      "total_sentences": 5,
+      "exact_match_sentences": 4,
+      "exact_match_relation_type_sets": 18
+    },
+    "vendor_attribution": {
+      "total_sentences": 4,
+      "exact_match_sentences": 4,
+      "exact_match_relation_type_sets": 16
+    },
+    "technique_and_tools": {
+      "total_sentences": 1,
+      "exact_match_sentences": 1,
+      "exact_match_relation_type_sets": 4
+    },
+    "multi_target": {
+      "total_sentences": 2,
+      "exact_match_sentences": 2,
+      "exact_match_relation_type_sets": 8
+    },
+    "multi_tool": {
+      "total_sentences": 1,
+      "exact_match_sentences": 1,
+      "exact_match_relation_type_sets": 4
+    },
+    "multi_actor_multi_clause": {
+      "total_sentences": 1,
+      "exact_match_sentences": 1,
+      "exact_match_relation_type_sets": 4
+    },
+    "negation": {
+      "total_sentences": 4,
+      "exact_match_sentences": 3,
+      "exact_match_relation_type_sets": 15
+    },
+    "distractor_no_relation": {
+      "total_sentences": 1,
+      "exact_match_sentences": 1,
+      "exact_match_relation_type_sets": 4
+    }
+  }
+}

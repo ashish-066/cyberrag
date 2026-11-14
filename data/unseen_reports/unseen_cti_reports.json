@@ -1,0 +1,54 @@
+[
+  {
+    "report_id": "CISA-AA24-131A",
+    "source": "CISA",
+    "publication_date": "2024-05-10",
+    "title": "CISA Alert AA24-131A: StopRansomware - Black Basta Ransomware Operations",
+    "content": "The Cybersecurity and Infrastructure Security Agency (CISA) and the Federal Bureau of Investigation (FBI) released a joint Cybersecurity Advisory to disseminate known indicators of compromise and tactics utilized by Black Basta ransomware affiliates. Black Basta operators have targeted healthcare organizations and critical infrastructure sectors across the United States and Germany since early 2022. Threat actors deployed QakBot trojan and utilized SystemBC proxy utilities to establish encrypted persistence. Additionally, Black Basta operators exploited CVE-2024-1709 in ConnectWise ScreenConnect and leveraged CVE-2020-1472 to escalate domain privileges. Affiliates conducted lateral movement using PsExec and executed T1486 Data Encrypted for Impact across municipal networks.",
+    "url": "https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-131a",
+    "author": "CISA / FBI / HHS",
+    "tlp": "CLEAR",
+    "extra_metadata": {
+      "novel_threat_entities": ["Black Basta", "QakBot", "SystemBC", "CVE-2024-1709"]
+    }
+  },
+  {
+    "report_id": "MSFT-STORM0558-2023",
+    "source": "Microsoft",
+    "publication_date": "2023-07-14",
+    "title": "Microsoft Threat Intelligence: Analysis of Storm-0558 Targeting of Government Email Systems",
+    "content": "Microsoft Threat Intelligence investigated targeted cyber operations conducted by China-based threat actor Storm-0558. Storm-0558 targeted government agencies and diplomatic entities across the United States and Western Europe to acquire intelligence on geopolitical communications. Operators utilized stolen signing keys and forged authentication tokens via T1078 Valid Accounts to access customer email services without authorization. The adversary exploited CVE-2023-36884 to conduct remote code execution and deployed customized backdoors into targeted telecommunications providers.",
+    "url": "https://www.microsoft.com/security/blog/2023/07/14/analysis-of-storm-0558-threat-actor-access-to-customer-email/",
+    "author": "Microsoft Threat Intelligence",
+    "tlp": "CLEAR",
+    "extra_metadata": {
+      "novel_threat_entities": ["Storm-0558", "CVE-2023-36884"]
+    }
+  },
+  {
+    "report_id": "UNIT42-DARKGATE-2023",
+    "source": "Unit 42",
+    "publication_date": "2023-09-22",
+    "title": "Unit 42 Threat Frontier: DarkGate Modular Loader Exploiting Enterprise Networks",
+    "content": "Palo Alto Networks Unit 42 observed an aggressive increase in commodity cybercrime campaigns distributing the DarkGate modular loader. Operators deployed DarkGate malware and utilized AutoIt scripts alongside Chisel proxy utilities to maintain stealthy command and control. The cybercrime group targeted financial institutions and commercial enterprises across the United Kingdom and the United States. DarkGate operators executed T1566 Phishing to deliver malicious payloads and deployed DuckTail stealer to harvest enterprise account credentials.",
+    "url": "https://unit42.paloaltonetworks.com/darkgate-malware-analysis/",
+    "author": "Palo Alto Networks Unit 42",
+    "tlp": "CLEAR",
+    "extra_metadata": {
+      "novel_threat_entities": ["DarkGate", "DuckTail", "AutoIt"]
+    }
+  },
+  {
+    "report_id": "CISA-AA23-353A",
+    "source": "CISA",
+    "publication_date": "2023-12-19",
+    "title": "CISA Alert AA23-353A: #StopRansomware - ALPHV BlackCat Ransomware Exploits",
+    "content": "CISA, the FBI, and international cybersecurity partners published guidance on ALPHV BlackCat ransomware operations. Cyber actors deployed BlackCat ransomware components and utilized Fast Reverse Proxy to exfiltrate proprietary data. Affiliates targeted defense contractors and transportation systems across Canada and the United States. BlackCat operators exploited CVE-2023-34362 in MOVEit Transfer applications to compromise external file storage systems and utilized T1485 Data Destruction to disrupt business operations.",
+    "url": "https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-353a",
+    "author": "CISA / FBI",
+    "tlp": "CLEAR",
+    "extra_metadata": {
+      "novel_threat_entities": ["ALPHV", "CVE-2023-34362"]
+    }
+  }
+]

@@ -1,0 +1,403 @@
+{
+  "annoctr_evaluation_overview": {
+    "benchmark_name": "Official AnnoCTR Independent Real-World CTI Benchmark",
+    "training_split_file": "data\\annoctr_source\\ner_train.jsonl",
+    "total_training_sentences": 7570,
+    "test_split_file": "data\\annoctr_source\\ner_test.jsonl",
+    "total_sentences_evaluated": 3059,
+    "total_gold_entities": 1936,
+    "gold_categories_distribution": {
+      "ThreatActor": 213,
+      "Malware": 421,
+      "Tool": 52,
+      "CVE": 0,
+      "Technique": 548,
+      "Organization": 513,
+      "Location": 189
+    },
+    "evaluation_protocol": "Zero-Leakage Out-of-Distribution Evaluation on Real-World CTI Text"
+  },
+  "baseline_gazetteer_performance": {
+    "ThreatActor": {
+      "true_positives": 40,
+      "false_positives": 7,
+      "false_negatives": 173,
+      "precision": 0.8511,
+      "recall": 0.1878,
+      "f1_score": 0.3077
+    },
+    "Malware": {
+      "true_positives": 266,
+      "false_positives": 38,
+      "false_negatives": 155,
+      "precision": 0.875,
+      "recall": 0.6318,
+      "f1_score": 0.7338
+    },
+    "Tool": {
+      "true_positives": 17,
+      "false_positives": 213,
+      "false_negatives": 35,
+      "precision": 0.0739,
+      "recall": 0.3269,
+      "f1_score": 0.1206
+    },
+    "CVE": {
+      "true_positives": 0,
+      "false_positives": 4,
+      "false_negatives": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0
+    },
+    "Technique": {
+      "true_positives": 165,
+      "false_positives": 758,
+      "false_negatives": 383,
+      "precision": 0.1788,
+      "recall": 0.3011,
+      "f1_score": 0.2243
+    },
+    "Organization": {
+      "true_positives": 40,
+      "false_positives": 31,
+      "false_negatives": 473,
+      "precision": 0.5634,
+      "recall": 0.078,
+      "f1_score": 0.137
+    },
+    "Location": {
+      "true_positives": 119,
+      "false_positives": 66,
+      "false_negatives": 70,
+      "precision": 0.6432,
+      "recall": 0.6296,
+      "f1_score": 0.6364
+    },
+    "OVERALL": {
+      "true_positives": 647,
+      "false_positives": 1117,
+      "false_negatives": 1289,
+      "precision": 0.3668,
+      "recall": 0.3342,
+      "f1_score": 0.3497
+    }
+  },
+  "hybrid_contextual_ner_performance": {
+    "ThreatActor": {
+      "true_positives": 77,
+      "false_positives": 56,
+      "false_negatives": 136,
+      "precision": 0.5789,
+      "recall": 0.3615,
+      "f1_score": 0.4451
+    },
+    "Malware": {
+      "true_positives": 298,
+      "false_positives": 60,
+      "false_negatives": 123,
+      "precision": 0.8324,
+      "recall": 0.7078,
+      "f1_score": 0.7651
+    },
+    "Tool": {
+      "true_positives": 27,
+      "false_positives": 221,
+      "false_negatives": 25,
+      "precision": 0.1089,
+      "recall": 0.5192,
+      "f1_score": 0.18
+    },
+    "CVE": {
+      "true_positives": 0,
+      "false_positives": 4,
+      "false_negatives": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0
+    },
+    "Technique": {
+      "true_positives": 165,
+      "false_positives": 756,
+      "false_negatives": 383,
+      "precision": 0.1792,
+      "recall": 0.3011,
+      "f1_score": 0.2246
+    },
+    "Organization": {
+      "true_positives": 221,
+      "false_positives": 246,
+      "false_negatives": 292,
+      "precision": 0.4732,
+      "recall": 0.4308,
+      "f1_score": 0.451
+    },
+    "Location": {
+      "true_positives": 167,
+      "false_positives": 111,
+      "false_negatives": 22,
+      "precision": 0.6007,
+      "recall": 0.8836,
+      "f1_score": 0.7152
+    },
+    "OVERALL": {
+      "true_positives": 955,
+      "false_positives": 1454,
+      "false_negatives": 981,
+      "precision": 0.3964,
+      "recall": 0.4933,
+      "f1_score": 0.4396
+    }
+  },
+  "comparative_analysis": {
+    "baseline_overall": {
+      "true_positives": 647,
+      "false_positives": 1117,
+      "false_negatives": 1289,
+      "precision": 0.3668,
+      "recall": 0.3342,
+      "f1_score": 0.3497
+    },
+    "hybrid_overall": {
+      "true_positives": 955,
+      "false_positives": 1454,
+      "false_negatives": 981,
+      "precision": 0.3964,
+      "recall": 0.4933,
+      "f1_score": 0.4396
+    },
+    "f1_improvement": 0.0899,
+    "summary": "Baseline Gazetteer achieves 36.68% precision and 33.42% recall (34.97% F1). Hybrid Contextual ML NER achieves 39.64% precision and 49.33% recall (43.96% F1), improving recall and novel entity discovery across real-world CTI texts."
+  },
+  "error_analysis": {
+    "out_of_vocabulary_misses": [
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0000",
+        "gold_text": "TinyNuke",
+        "category": "Malware",
+        "canonical_name": "TinyNuke",
+        "evidence_text": "TinyNuke Banking Malware Targets French Entities",
+        "miss_reason": "out_of_vocabulary"
+      },
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0000",
+        "gold_text": "Banking",
+        "category": "Organization",
+        "canonical_name": "Banking",
+        "evidence_text": "TinyNuke Banking Malware Targets French Entities",
+        "miss_reason": "out_of_vocabulary"
+      },
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0003",
+        "gold_text": "Proofpoint",
+        "category": "Organization",
+        "canonical_name": "Proofpoint",
+        "evidence_text": "* Proofpoint researchers identified ongoing activity from the banking malware TinyNuke.",
+        "miss_reason": "out_of_vocabulary"
+      },
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0003",
+        "gold_text": "banking",
+        "category": "Organization",
+        "canonical_name": "banking",
+        "evidence_text": "* Proofpoint researchers identified ongoing activity from the banking malware TinyNuke.",
+        "miss_reason": "out_of_vocabulary"
+      },
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0003",
+        "gold_text": "TinyNuke",
+        "category": "Malware",
+        "canonical_name": "TinyNuke",
+        "evidence_text": "* Proofpoint researchers identified ongoing activity from the banking malware TinyNuke.",
+        "miss_reason": "out_of_vocabulary"
+      },
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0005",
+        "gold_text": "manufacturing",
+        "category": "Organization",
+        "canonical_name": "manufacturing",
+        "evidence_text": "* The campaigns leverage invoice-themed [lures](/us/blog/threat-insight/bec-taxonomy-lures-and-tasks \"BEC Taxonomy: Lures and Tasks \") targeting entities in manufacturing, industry, technology, finance, and other verticals.",
+        "miss_reason": "out_of_vocabulary"
+      },
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0005",
+        "gold_text": "industry",
+        "category": "Organization",
+        "canonical_name": "industry",
+        "evidence_text": "* The campaigns leverage invoice-themed [lures](/us/blog/threat-insight/bec-taxonomy-lures-and-tasks \"BEC Taxonomy: Lures and Tasks \") targeting entities in manufacturing, industry, technology, finance, and other verticals.",
+        "miss_reason": "out_of_vocabulary"
+      },
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0005",
+        "gold_text": "technology",
+        "category": "Organization",
+        "canonical_name": "technology",
+        "evidence_text": "* The campaigns leverage invoice-themed [lures](/us/blog/threat-insight/bec-taxonomy-lures-and-tasks \"BEC Taxonomy: Lures and Tasks \") targeting entities in manufacturing, industry, technology, finance, and other verticals.",
+        "miss_reason": "out_of_vocabulary"
+      },
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0005",
+        "gold_text": "finance",
+        "category": "Organization",
+        "canonical_name": "finance",
+        "evidence_text": "* The campaigns leverage invoice-themed [lures](/us/blog/threat-insight/bec-taxonomy-lures-and-tasks \"BEC Taxonomy: Lures and Tasks \") targeting entities in manufacturing, industry, technology, finance, and other verticals.",
+        "miss_reason": "out_of_vocabulary"
+      },
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0005",
+        "gold_text": "other verticals",
+        "category": "Organization",
+        "canonical_name": "other verticals",
+        "evidence_text": "* The campaigns leverage invoice-themed [lures](/us/blog/threat-insight/bec-taxonomy-lures-and-tasks \"BEC Taxonomy: Lures and Tasks \") targeting entities in manufacturing, industry, technology, finance, and other verticals.",
+        "miss_reason": "out_of_vocabulary"
+      },
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0008",
+        "gold_text": "Proofpoint",
+        "category": "Organization",
+        "canonical_name": "Proofpoint",
+        "evidence_text": "Proofpoint identified multiple recent campaigns leveraging invoice-themed lures to distribute the uncommonly observed TinyNuke malware.",
+        "miss_reason": "out_of_vocabulary"
+      },
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0008",
+        "gold_text": "TinyNuke",
+        "category": "Malware",
+        "canonical_name": "TinyNuke",
+        "evidence_text": "Proofpoint identified multiple recent campaigns leveraging invoice-themed lures to distribute the uncommonly observed TinyNuke malware.",
+        "miss_reason": "out_of_vocabulary"
+      },
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0010",
+        "gold_text": "manufacturing",
+        "category": "Organization",
+        "canonical_name": "manufacturing",
+        "evidence_text": "The campaigns target hundreds of customers in various industries including manufacturing, technology, construction, and business services.",
+        "miss_reason": "out_of_vocabulary"
+      },
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0010",
+        "gold_text": "technology",
+        "category": "Organization",
+        "canonical_name": "technology",
+        "evidence_text": "The campaigns target hundreds of customers in various industries including manufacturing, technology, construction, and business services.",
+        "miss_reason": "out_of_vocabulary"
+      },
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0010",
+        "gold_text": "construction",
+        "category": "Organization",
+        "canonical_name": "construction",
+        "evidence_text": "The campaigns target hundreds of customers in various industries including manufacturing, technology, construction, and business services.",
+        "miss_reason": "out_of_vocabulary"
+      }
+    ],
+    "boundary_false_positives": [
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0000",
+        "predicted_text": "Malware",
+        "category": "Technique",
+        "canonical_name": "T1587.001 - Malware",
+        "evidence_text": "TinyNuke Banking Malware Targets French Entities"
+      },
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0003",
+        "predicted_text": "malware",
+        "category": "Technique",
+        "canonical_name": "T1587.001 - Malware",
+        "evidence_text": "* Proofpoint researchers identified ongoing activity from the banking malware TinyNuke."
+      },
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0005",
+        "predicted_text": "us",
+        "category": "Location",
+        "canonical_name": "United States",
+        "evidence_text": "* The campaigns leverage invoice-themed [lures](/us/blog/threat-insight/bec-taxonomy-lures-and-tasks \"BEC Taxonomy: Lures and Tasks \") targeting entities in manufacturing, industry, technology, finance, and other verticals."
+      },
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0006",
+        "predicted_text": "malware",
+        "category": "Technique",
+        "canonical_name": "T1587.001 - Malware",
+        "evidence_text": "* The new activity demonstrates a re-emergence of the malware specifically targeting French users that peaked in popularity in 2018."
+      },
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0008",
+        "predicted_text": "malware",
+        "category": "Technique",
+        "canonical_name": "T1587.001 - Malware",
+        "evidence_text": "Proofpoint identified multiple recent campaigns leveraging invoice-themed lures to distribute the uncommonly observed TinyNuke malware."
+      },
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0013",
+        "predicted_text": "us",
+        "category": "Location",
+        "canonical_name": "United States",
+        "evidence_text": "It is similar to the notorious banking trojan Zeus, which has [many variants](/us/blog/threat-insight/zloader-loads-again-new-zloader-variant-returns \"ZLoader Loads Again: New ZLoader Variant Returns\") with identical functionality."
+      },
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0014",
+        "predicted_text": "malware",
+        "category": "Technique",
+        "canonical_name": "T1587.001 - Malware",
+        "evidence_text": "TinyNuke can be used to steal credentials and other private information and can be used to enable follow-on [malware attacks](/us/threat-reference/malware \"Malware\")."
+      },
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0014",
+        "predicted_text": "us",
+        "category": "Location",
+        "canonical_name": "United States",
+        "evidence_text": "TinyNuke can be used to steal credentials and other private information and can be used to enable follow-on [malware attacks](/us/threat-reference/malware \"Malware\")."
+      },
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0014",
+        "predicted_text": "malware",
+        "category": "Technique",
+        "canonical_name": "T1587.001 - Malware",
+        "evidence_text": "TinyNuke can be used to steal credentials and other private information and can be used to enable follow-on [malware attacks](/us/threat-reference/malware \"Malware\")."
+      },
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0014",
+        "predicted_text": "Malware",
+        "category": "Technique",
+        "canonical_name": "T1587.001 - Malware",
+        "evidence_text": "TinyNuke can be used to steal credentials and other private information and can be used to enable follow-on [malware attacks](/us/threat-reference/malware \"Malware\")."
+      },
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0015",
+        "predicted_text": "malware",
+        "category": "Technique",
+        "canonical_name": "T1587.001 - Malware",
+        "evidence_text": "The author initially [released](https://github.com/aainz/TinyNuke) the code on GitHub in 2017, and although the original repo is no longer available, other open-source versions of the malware exist."
+      },
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0034",
+        "predicted_text": "at",
+        "category": "Tool",
+        "canonical_name": "at",
+        "evidence_text": "Proofpoint assesses there are at least two distinct activity sets using TinyNuke based on different lure themes, payload deployment, and command and control (C2) infrastructure."
+      },
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0035",
+        "predicted_text": "Tor",
+        "category": "Tool",
+        "canonical_name": "Tor",
+        "evidence_text": "Specifically, one intrusion set associated with the initial TinyNuke actors uses Tor for C2 since 2018, while commodity actors typically leverage clear web C2."
+      },
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0036",
+        "predicted_text": "net",
+        "category": "Tool",
+        "canonical_name": "Net",
+        "evidence_text": "Open source [reporting suggests](https://blog.heat-miser.net/posts/tinynuke/) the malware version using Tor which Proofpoint has observed with continued regularity is not publicly available, and likely used only by the original TinyNuke threat actors."
+      },
+      {
+        "sentence_id": "proofpoint_2021-12-13_tinynuke-banking-malware-targets-french__s0036",
+        "predicted_text": "malware",
+        "category": "Technique",
+        "canonical_name": "T1587.001 - Malware",
+        "evidence_text": "Open source [reporting suggests](https://blog.heat-miser.net/posts/tinynuke/) the malware version using Tor which Proofpoint has observed with continued regularity is not publicly available, and likely used only by the original TinyNuke threat actors."
+      }
+    ]
+  }
+}

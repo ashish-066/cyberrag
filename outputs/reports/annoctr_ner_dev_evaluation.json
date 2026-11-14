@@ -1,0 +1,403 @@
+{
+  "annoctr_evaluation_overview": {
+    "benchmark_name": "Official AnnoCTR Independent Real-World CTI Benchmark",
+    "training_split_file": "data\\annoctr_source\\ner_train.jsonl",
+    "total_training_sentences": 7570,
+    "test_split_file": "data\\annoctr_source\\ner_dev.jsonl",
+    "total_sentences_evaluated": 1550,
+    "total_gold_entities": 1133,
+    "gold_categories_distribution": {
+      "ThreatActor": 99,
+      "Malware": 205,
+      "Tool": 31,
+      "CVE": 0,
+      "Technique": 175,
+      "Organization": 390,
+      "Location": 233
+    },
+    "evaluation_protocol": "Zero-Leakage Out-of-Distribution Evaluation on Real-World CTI Text"
+  },
+  "baseline_gazetteer_performance": {
+    "ThreatActor": {
+      "true_positives": 63,
+      "false_positives": 4,
+      "false_negatives": 36,
+      "precision": 0.9403,
+      "recall": 0.6364,
+      "f1_score": 0.759
+    },
+    "Malware": {
+      "true_positives": 92,
+      "false_positives": 44,
+      "false_negatives": 113,
+      "precision": 0.6765,
+      "recall": 0.4488,
+      "f1_score": 0.5396
+    },
+    "Tool": {
+      "true_positives": 17,
+      "false_positives": 104,
+      "false_negatives": 14,
+      "precision": 0.1405,
+      "recall": 0.5484,
+      "f1_score": 0.2237
+    },
+    "CVE": {
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0
+    },
+    "Technique": {
+      "true_positives": 22,
+      "false_positives": 238,
+      "false_negatives": 153,
+      "precision": 0.0846,
+      "recall": 0.1257,
+      "f1_score": 0.1011
+    },
+    "Organization": {
+      "true_positives": 22,
+      "false_positives": 43,
+      "false_negatives": 368,
+      "precision": 0.3385,
+      "recall": 0.0564,
+      "f1_score": 0.0967
+    },
+    "Location": {
+      "true_positives": 79,
+      "false_positives": 24,
+      "false_negatives": 154,
+      "precision": 0.767,
+      "recall": 0.3391,
+      "f1_score": 0.4702
+    },
+    "OVERALL": {
+      "true_positives": 295,
+      "false_positives": 457,
+      "false_negatives": 838,
+      "precision": 0.3923,
+      "recall": 0.2604,
+      "f1_score": 0.313
+    }
+  },
+  "hybrid_contextual_ner_performance": {
+    "ThreatActor": {
+      "true_positives": 68,
+      "false_positives": 6,
+      "false_negatives": 31,
+      "precision": 0.9189,
+      "recall": 0.6869,
+      "f1_score": 0.7861
+    },
+    "Malware": {
+      "true_positives": 113,
+      "false_positives": 55,
+      "false_negatives": 92,
+      "precision": 0.6726,
+      "recall": 0.5512,
+      "f1_score": 0.6059
+    },
+    "Tool": {
+      "true_positives": 17,
+      "false_positives": 106,
+      "false_negatives": 14,
+      "precision": 0.1382,
+      "recall": 0.5484,
+      "f1_score": 0.2208
+    },
+    "CVE": {
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0
+    },
+    "Technique": {
+      "true_positives": 22,
+      "false_positives": 238,
+      "false_negatives": 153,
+      "precision": 0.0846,
+      "recall": 0.1257,
+      "f1_score": 0.1011
+    },
+    "Organization": {
+      "true_positives": 204,
+      "false_positives": 211,
+      "false_negatives": 186,
+      "precision": 0.4916,
+      "recall": 0.5231,
+      "f1_score": 0.5068
+    },
+    "Location": {
+      "true_positives": 128,
+      "false_positives": 68,
+      "false_negatives": 105,
+      "precision": 0.6531,
+      "recall": 0.5494,
+      "f1_score": 0.5967
+    },
+    "OVERALL": {
+      "true_positives": 552,
+      "false_positives": 684,
+      "false_negatives": 581,
+      "precision": 0.4466,
+      "recall": 0.4872,
+      "f1_score": 0.466
+    }
+  },
+  "comparative_analysis": {
+    "baseline_overall": {
+      "true_positives": 295,
+      "false_positives": 457,
+      "false_negatives": 838,
+      "precision": 0.3923,
+      "recall": 0.2604,
+      "f1_score": 0.313
+    },
+    "hybrid_overall": {
+      "true_positives": 552,
+      "false_positives": 684,
+      "false_negatives": 581,
+      "precision": 0.4466,
+      "recall": 0.4872,
+      "f1_score": 0.466
+    },
+    "f1_improvement": 0.153,
+    "summary": "Baseline Gazetteer achieves 39.23% precision and 26.04% recall (31.30% F1). Hybrid Contextual ML NER achieves 44.66% precision and 48.72% recall (46.60% F1), improving recall and novel entity discovery across real-world CTI texts."
+  },
+  "error_analysis": {
+    "out_of_vocabulary_misses": [
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0000",
+        "gold_text": "Dll-Sideloading trojans",
+        "category": "Technique",
+        "canonical_name": "Dll-Sideloading trojans",
+        "evidence_text": "Mustang Panda Recent Activity: Dll-Sideloading trojans with temporal C2 servers",
+        "miss_reason": "out_of_vocabulary"
+      },
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0000",
+        "gold_text": "C2",
+        "category": "Technique",
+        "canonical_name": "C2",
+        "evidence_text": "Mustang Panda Recent Activity: Dll-Sideloading trojans with temporal C2 servers",
+        "miss_reason": "out_of_vocabulary"
+      },
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0002",
+        "gold_text": "Lab52",
+        "category": "Organization",
+        "canonical_name": "Lab52",
+        "evidence_text": "Recently, from Lab52 we have detected a recent malware sample, using the Dll-Sideload technique with a legitimate binary, to load a threat.",
+        "miss_reason": "out_of_vocabulary"
+      },
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0002",
+        "gold_text": "Dll-Sideload technique with a legitimate binary, to load a threat",
+        "category": "Technique",
+        "canonical_name": "Dll-Sideload technique with a legitimate binary, to load a threat",
+        "evidence_text": "Recently, from Lab52 we have detected a recent malware sample, using the Dll-Sideload technique with a legitimate binary, to load a threat.",
+        "miss_reason": "out_of_vocabulary"
+      },
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0007",
+        "gold_text": "lab52",
+        "category": "Organization",
+        "canonical_name": "lab52",
+        "evidence_text": "![](https://lab52.io/blog/wp-content/uploads/2019/08/Captura-de-pantalla-de-2020-05-19-17-05-20-2.png)",
+        "miss_reason": "out_of_vocabulary"
+      },
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0008",
+        "gold_text": "deploying the three files, the installer runs the legitimate binary",
+        "category": "Technique",
+        "canonical_name": "deploying the three files, the installer runs the legitimate binary",
+        "evidence_text": "After deploying the three files, the installer runs the legitimate binary, causing the final PlugX threat to be loaded by it.",
+        "miss_reason": "out_of_vocabulary"
+      },
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0009",
+        "gold_text": "lab52",
+        "category": "Organization",
+        "canonical_name": "lab52",
+        "evidence_text": "![](https://lab52.io/blog/wp-content/uploads/2019/08/Captura-de-pantalla-de-2020-05-19-17-07-14-3.png)",
+        "miss_reason": "out_of_vocabulary"
+      },
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0010",
+        "gold_text": "Adobe",
+        "category": "Organization",
+        "canonical_name": "Adobe",
+        "evidence_text": "In this case, the legitimate vulnerable binary is part of Adobe’s Swite which will load any library named “hex.dll” that is next to the executable.",
+        "miss_reason": "out_of_vocabulary"
+      },
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0011",
+        "gold_text": "lab52",
+        "category": "Organization",
+        "canonical_name": "lab52",
+        "evidence_text": "![](https://lab52.io/blog/wp-content/uploads/2019/08/Captura-de-pantalla-de-2020-05-19-17-21-53-2.png)",
+        "miss_reason": "out_of_vocabulary"
+      },
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0013",
+        "gold_text": "lab52",
+        "category": "Organization",
+        "canonical_name": "lab52",
+        "evidence_text": "![](https://lab52.io/blog/wp-content/uploads/2019/08/Captura-de-pantalla-de-2020-05-19-17-11-06-2.png)",
+        "miss_reason": "out_of_vocabulary"
+      },
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0016",
+        "gold_text": "lab52",
+        "category": "Organization",
+        "canonical_name": "lab52",
+        "evidence_text": "![](https://lab52.io/blog/wp-content/uploads/2019/08/Captura-de-pantalla-de-2020-05-19-17-27-10-2.png)",
+        "miss_reason": "out_of_vocabulary"
+      },
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0018",
+        "gold_text": "It is a functional PE",
+        "category": "Technique",
+        "canonical_name": "It is a functional PE",
+        "evidence_text": "It is a functional PE, so this should not work, since it starts with the “MZ” header of a normal binary:",
+        "miss_reason": "out_of_vocabulary"
+      },
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0019",
+        "gold_text": "lab52",
+        "category": "Organization",
+        "canonical_name": "lab52",
+        "evidence_text": "![](https://lab52.io/blog/wp-content/uploads/2019/08/Captura-de-pantalla-de-2020-05-19-17-29-56-2.png)",
+        "miss_reason": "out_of_vocabulary"
+      },
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0020",
+        "gold_text": "Beacon",
+        "category": "Malware",
+        "canonical_name": "Beacon",
+        "evidence_text": "But in this case it uses a technique already seen before in tools like the Cobalt Strike Beacon that by modifying some bytes of the MZ header, it becomes meaningful executable code.",
+        "miss_reason": "out_of_vocabulary"
+      },
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0021",
+        "gold_text": "consisting of a PE loader",
+        "category": "Technique",
+        "canonical_name": "consisting of a PE loader",
+        "evidence_text": "If we open the binary as a shellcode (de-compiling from byte 0) we see how they have modified the first bytes into a routine that jumps to a code zone, consisting of a PE loader:",
+        "miss_reason": "out_of_vocabulary"
+      }
+    ],
+    "boundary_false_positives": [
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0002",
+        "predicted_text": "Dll-Sideload",
+        "category": "Location",
+        "canonical_name": "Dll-Sideload",
+        "evidence_text": "Recently, from Lab52 we have detected a recent malware sample, using the Dll-Sideload technique with a legitimate binary, to load a threat."
+      },
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0003",
+        "predicted_text": "DLL",
+        "category": "Technique",
+        "canonical_name": "T1574.001 - DLL",
+        "evidence_text": "This particular sample has a very small DLL, that loads an encrypted file, which after being decrypted consists of a sample of the PlugX Trojan."
+      },
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0006",
+        "predicted_text": "dll",
+        "category": "Technique",
+        "canonical_name": "T1574.001 - DLL",
+        "evidence_text": "The binary consists of an installer, which drops in the folder “C:\\ProgramData\\AAM Updatesnnk” the legitimate binary vulnerable to dll sideload, the small dll that acts as a loader for the final threat, and the binary file, which consists of the encrypted PlugX sample."
+      },
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0006",
+        "predicted_text": "dll",
+        "category": "Technique",
+        "canonical_name": "T1574.001 - DLL",
+        "evidence_text": "The binary consists of an installer, which drops in the folder “C:\\ProgramData\\AAM Updatesnnk” the legitimate binary vulnerable to dll sideload, the small dll that acts as a loader for the final threat, and the binary file, which consists of the encrypted PlugX sample."
+      },
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0012",
+        "predicted_text": "dll",
+        "category": "Technique",
+        "canonical_name": "T1574.001 - DLL",
+        "evidence_text": "That hex.dll, in this case is a very simple and relatively small loader:"
+      },
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0015",
+        "predicted_text": "python",
+        "category": "Technique",
+        "canonical_name": "T1059.006 - Python",
+        "evidence_text": "The [following code](https://raw.githubusercontent.com/Bondey/PlugxScripts/master/PlugDecoder.py) in python imitates the logic of decoding:"
+      },
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0021",
+        "predicted_text": "loader",
+        "category": "Tool",
+        "canonical_name": "loader",
+        "evidence_text": "If we open the binary as a shellcode (de-compiling from byte 0) we see how they have modified the first bytes into a routine that jumps to a code zone, consisting of a PE loader:"
+      },
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0023",
+        "predicted_text": "IAT",
+        "category": "Organization",
+        "canonical_name": "IAT",
+        "evidence_text": "After loading the IAT and leaving everything ready as a normal executable, this threat decrypts its own config, which is encrypted in XOR in the .data section of the binary."
+      },
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0025",
+        "predicted_text": "domains",
+        "category": "Technique",
+        "canonical_name": "T1583.001 - Domains",
+        "evidence_text": "After decrypting its configuration, it contains the folder where the binary must be installed, a XOR key that will use to encrypt it’s traffic and a list of up to 4 domains or IP addresses of command and control servers together with the port to be used."
+      },
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0025",
+        "predicted_text": "IP addresses",
+        "category": "Technique",
+        "canonical_name": "T1590.005 - IP Addresses",
+        "evidence_text": "After decrypting its configuration, it contains the folder where the binary must be installed, a XOR key that will use to encrypt it’s traffic and a list of up to 4 domains or IP addresses of command and control servers together with the port to be used."
+      },
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0026",
+        "predicted_text": "domains",
+        "category": "Technique",
+        "canonical_name": "T1583.001 - Domains",
+        "evidence_text": "Generally the 4 C2 elements consists of the same domain repeated 4 times or 2 domains repeated twice each."
+      },
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0027",
+        "predicted_text": "DLL",
+        "category": "Technique",
+        "canonical_name": "T1574.001 - DLL",
+        "evidence_text": "After the analysis, both the loader in DLL format and the final encrypted threat (after decryption) have been compared with different campaign samples of groups known to use this dll sideload technique, and it has been possible to verify how both the loader and the final threat coincide in a high percentage with the samples of the “Mustang Panda” group analyzed in the following reports [[1]](https://www.anomali.com/blog/covid-19-themes-are-being-utilized-by-threat-actors-of-varying-sophistication) [[2]](https://blog.vincss.net/2020/03/re012-phan-tich-ma-doc-loi-dung-dich-COVID-19-de-phat-tan-gia-mao-chi-thi-cua-thu-tuong-Nguyen-Xuan-Phuc.html) [[3]](https://blog.vincss.net/2020/03/re012-phan-tich-ma-doc-loi-dung-dich-COVID-19-de-phat-tan-gia-mao-chi-thi-cua-thu-tuong-Nguyen-Xuan-Phuc-phan2.html)."
+      },
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0027",
+        "predicted_text": "dll",
+        "category": "Technique",
+        "canonical_name": "T1574.001 - DLL",
+        "evidence_text": "After the analysis, both the loader in DLL format and the final encrypted threat (after decryption) have been compared with different campaign samples of groups known to use this dll sideload technique, and it has been possible to verify how both the loader and the final threat coincide in a high percentage with the samples of the “Mustang Panda” group analyzed in the following reports [[1]](https://www.anomali.com/blog/covid-19-themes-are-being-utilized-by-threat-actors-of-varying-sophistication) [[2]](https://blog.vincss.net/2020/03/re012-phan-tich-ma-doc-loi-dung-dich-COVID-19-de-phat-tan-gia-mao-chi-thi-cua-thu-tuong-Nguyen-Xuan-Phuc.html) [[3]](https://blog.vincss.net/2020/03/re012-phan-tich-ma-doc-loi-dung-dich-COVID-19-de-phat-tan-gia-mao-chi-thi-cua-thu-tuong-Nguyen-Xuan-Phuc-phan2.html)."
+      },
+      {
+        "sentence_id": "lab52_2020-06-02_mustang-panda-recent-activity-dll__s0029",
+        "predicted_text": "domains",
+        "category": "Technique",
+        "canonical_name": "T1583.001 - Domains",
+        "evidence_text": "This particular sample has the domains “www.destroy2013.]com” and “www.fitehook.]com” as c2 servers, and we have seen that they have a very characteristic behavior, since most of the day they resolve to 127.0.0.1, but from 1-3 AM (UTC) to 8-9 AM (UTC) it resolves to the IP “107.150.112.]250, except for weekends that it resolves constantly to 127.0.0.1, which could indicate that it is a campaign that is focused on a time zone in which those hours are working hours."
+      },
+      {
+        "sentence_id": "lab52_2020-06-09_recent-fk-undead-rootkit-samples__s0010",
+        "predicted_text": "proxy",
+        "category": "Technique",
+        "canonical_name": "T1090 - Proxy",
+        "evidence_text": "2.Adding a proxy to the browsers that routes all the victim’s traffic through a server controlled by the actors behind this threat."
+      }
+    ]
+  }
+}

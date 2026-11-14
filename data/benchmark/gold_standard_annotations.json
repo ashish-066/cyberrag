@@ -1,0 +1,2077 @@
+[
+  {
+    "sentence_id": "GOLD::001",
+    "report_id": "CISA-AA23-347A",
+    "source": "CISA",
+    "publication_date": "2023-12-13",
+    "text": "Volt Typhoon exploited CVE-2024-21887 in Ivanti Connect Secure VPN appliances across the United States.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "Volt Typhoon",
+        "surface_text": "Volt Typhoon"
+      },
+      {
+        "category": "CVE",
+        "canonical_name": "CVE-2024-21887",
+        "surface_text": "CVE-2024-21887"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "United States",
+        "surface_text": "United States"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "Volt Typhoon",
+        "relation_type": "EXPLOITS",
+        "target_entity": "CVE-2024-21887",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "Volt Typhoon",
+        "relation_type": "TARGETS",
+        "target_entity": "United States",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Standard initial access and geographical targeting.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::002",
+    "report_id": "MANDIANT-APT29-2024",
+    "source": "Mandiant",
+    "publication_date": "2024-01-25",
+    "text": "APT29 deployed Cobalt Strike and Mimikatz to compromise Microsoft enterprise accounts.",
+    "challenge_type": "multi_tool",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "APT29",
+        "surface_text": "APT29"
+      },
+      {
+        "category": "Tool",
+        "canonical_name": "Cobalt Strike",
+        "surface_text": "Cobalt Strike"
+      },
+      {
+        "category": "Tool",
+        "canonical_name": "Mimikatz",
+        "surface_text": "Mimikatz"
+      },
+      {
+        "category": "Organization",
+        "canonical_name": "Microsoft",
+        "surface_text": "Microsoft"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "APT29",
+        "relation_type": "USES",
+        "target_entity": "Cobalt Strike",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "APT29",
+        "relation_type": "USES",
+        "target_entity": "Mimikatz",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "APT29",
+        "relation_type": "TARGETS",
+        "target_entity": "Microsoft",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Actor uses two tools to target one victim organization.",
+    "provenance_type": "constructed_challenge",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::003",
+    "report_id": "UNIT42-LAZARUS-2023",
+    "source": "Unit 42",
+    "publication_date": "2023-09-18",
+    "text": "Lazarus Group deployed AppleJeus trojan and exploited CVE-2022-47966 against defense contractors in South Korea.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "Lazarus Group",
+        "surface_text": "Lazarus Group"
+      },
+      {
+        "category": "Malware",
+        "canonical_name": "AppleJeus",
+        "surface_text": "AppleJeus"
+      },
+      {
+        "category": "CVE",
+        "canonical_name": "CVE-2022-47966",
+        "surface_text": "CVE-2022-47966"
+      },
+      {
+        "category": "Organization",
+        "canonical_name": "Defense Industrial Base",
+        "surface_text": "defense contractors"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "South Korea",
+        "surface_text": "South Korea"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "Lazarus Group",
+        "relation_type": "USES",
+        "target_entity": "AppleJeus",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "Lazarus Group",
+        "relation_type": "EXPLOITS",
+        "target_entity": "CVE-2022-47966",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "Lazarus Group",
+        "relation_type": "TARGETS",
+        "target_entity": "Defense Industrial Base",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "Lazarus Group",
+        "relation_type": "TARGETS",
+        "target_entity": "South Korea",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Actor exploits flaw, drops malware, and targets defense sector in location.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::004",
+    "report_id": "CROWDSTRIKE-SANDWORM-2023",
+    "source": "CrowdStrike",
+    "publication_date": "2023-11-08",
+    "text": "Sandworm deployed HermeticWiper and utilized T1485 Data Destruction against the Ukrainian Ministry of Defense in Ukraine.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "Sandworm",
+        "surface_text": "Sandworm"
+      },
+      {
+        "category": "Malware",
+        "canonical_name": "HermeticWiper",
+        "surface_text": "HermeticWiper"
+      },
+      {
+        "category": "Technique",
+        "canonical_name": "T1485 - Data Destruction",
+        "surface_text": "T1485 Data Destruction"
+      },
+      {
+        "category": "Organization",
+        "canonical_name": "Ukrainian Ministry of Defense",
+        "surface_text": "Ukrainian Ministry of Defense"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "Ukraine",
+        "surface_text": "Ukraine"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "Sandworm",
+        "relation_type": "USES",
+        "target_entity": "HermeticWiper",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "Sandworm",
+        "relation_type": "USES_TECHNIQUE",
+        "target_entity": "T1485 - Data Destruction",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "Sandworm",
+        "relation_type": "TARGETS",
+        "target_entity": "Ukrainian Ministry of Defense",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "Sandworm",
+        "relation_type": "TARGETS",
+        "target_entity": "Ukraine",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Wiper deployment and MITRE technique execution against sovereign agency.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::005",
+    "report_id": "CISA-LOCKBIT3-2024",
+    "source": "CISA",
+    "publication_date": "2024-02-20",
+    "text": "LockBit affiliates exploited CVE-2023-4966 in Citrix Bleed appliances and targeted hospital networks in Germany.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "LockBit",
+        "surface_text": "LockBit affiliates"
+      },
+      {
+        "category": "CVE",
+        "canonical_name": "CVE-2023-4966",
+        "surface_text": "CVE-2023-4966"
+      },
+      {
+        "category": "Organization",
+        "canonical_name": "Healthcare Sector",
+        "surface_text": "hospital networks"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "Germany",
+        "surface_text": "Germany"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "LockBit",
+        "relation_type": "EXPLOITS",
+        "target_entity": "CVE-2023-4966",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "LockBit",
+        "relation_type": "TARGETS",
+        "target_entity": "Healthcare Sector",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "LockBit",
+        "relation_type": "TARGETS",
+        "target_entity": "Germany",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Ransomware gang exploiting edge appliance and targeting healthcare.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::006",
+    "report_id": "MANDIANT-APT29-2024",
+    "source": "Mandiant",
+    "publication_date": "2024-01-25",
+    "text": "WinRAR vulnerability CVE-2023-38831 was actively exploited by APT29 to infect diplomatic entities across Europe.",
+    "challenge_type": "passive_voice",
+    "ground_truth_entities": [
+      {
+        "category": "CVE",
+        "canonical_name": "CVE-2023-38831",
+        "surface_text": "CVE-2023-38831"
+      },
+      {
+        "category": "ThreatActor",
+        "canonical_name": "APT29",
+        "surface_text": "APT29"
+      },
+      {
+        "category": "Organization",
+        "canonical_name": "Municipal Governments",
+        "surface_text": "diplomatic entities"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "Europe",
+        "surface_text": "Europe"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "APT29",
+        "relation_type": "EXPLOITS",
+        "target_entity": "CVE-2023-38831",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "APT29",
+        "relation_type": "TARGETS",
+        "target_entity": "Municipal Governments",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "APT29",
+        "relation_type": "TARGETS",
+        "target_entity": "Europe",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Passive voice: CVE was exploited by actor.",
+    "provenance_type": "constructed_challenge",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::007",
+    "report_id": "CISA-AA23-347A",
+    "source": "CISA",
+    "publication_date": "2023-12-13",
+    "text": "Cobalt Strike BEACON was deployed by Volt Typhoon operators to establish persistent remote access.",
+    "challenge_type": "passive_voice",
+    "ground_truth_entities": [
+      {
+        "category": "Malware",
+        "canonical_name": "Cobalt Strike BEACON",
+        "surface_text": "Cobalt Strike BEACON"
+      },
+      {
+        "category": "ThreatActor",
+        "canonical_name": "Volt Typhoon",
+        "surface_text": "Volt Typhoon"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "Volt Typhoon",
+        "relation_type": "USES",
+        "target_entity": "Cobalt Strike BEACON",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Passive voice: payload was deployed by threat actor.",
+    "provenance_type": "constructed_challenge",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::008",
+    "report_id": "SENTINELONE-FIN7-2023",
+    "source": "SentinelOne",
+    "publication_date": "2023-08-14",
+    "text": "FIN7 did not deploy HermeticWiper during the intrusions against retail corporations in Canada.",
+    "challenge_type": "negation",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "FIN7",
+        "surface_text": "FIN7"
+      },
+      {
+        "category": "Malware",
+        "canonical_name": "HermeticWiper",
+        "surface_text": "HermeticWiper"
+      },
+      {
+        "category": "Organization",
+        "canonical_name": "Retail & Hospitality Sector",
+        "surface_text": "retail corporations"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "Canada",
+        "surface_text": "Canada"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "FIN7",
+        "relation_type": "TARGETS",
+        "target_entity": "Retail & Hospitality Sector",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "FIN7",
+        "relation_type": "TARGETS",
+        "target_entity": "Canada",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Negation: actor DID NOT deploy malware; must NOT extract affirmative USES relation!",
+    "provenance_type": "constructed_challenge",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::009",
+    "report_id": "CROWDSTRIKE-SANDWORM-2023",
+    "source": "CrowdStrike",
+    "publication_date": "2023-11-08",
+    "text": "There was no evidence that Sandworm exploited CVE-2024-21887 in perimeter routers.",
+    "challenge_type": "negation",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "Sandworm",
+        "surface_text": "Sandworm"
+      },
+      {
+        "category": "CVE",
+        "canonical_name": "CVE-2024-21887",
+        "surface_text": "CVE-2024-21887"
+      }
+    ],
+    "ground_truth_relations": [],
+    "notes": "Negation: explicit denial of exploitation; NO EXPLOITS relationship.",
+    "provenance_type": "constructed_challenge",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::010",
+    "report_id": "MANDIANT-APT29-2024",
+    "source": "Mandiant",
+    "publication_date": "2024-01-25",
+    "text": "While Volt Typhoon deployed Chisel, APT29 used PowerShell and Mimikatz against NATO member states.",
+    "challenge_type": "multi_actor_multi_clause",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "Volt Typhoon",
+        "surface_text": "Volt Typhoon"
+      },
+      {
+        "category": "Tool",
+        "canonical_name": "Chisel",
+        "surface_text": "Chisel"
+      },
+      {
+        "category": "ThreatActor",
+        "canonical_name": "APT29",
+        "surface_text": "APT29"
+      },
+      {
+        "category": "Tool",
+        "canonical_name": "PowerShell",
+        "surface_text": "PowerShell"
+      },
+      {
+        "category": "Tool",
+        "canonical_name": "Mimikatz",
+        "surface_text": "Mimikatz"
+      },
+      {
+        "category": "Organization",
+        "canonical_name": "NATO",
+        "surface_text": "NATO"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "Volt Typhoon",
+        "relation_type": "USES",
+        "target_entity": "Chisel",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "APT29",
+        "relation_type": "USES",
+        "target_entity": "PowerShell",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "APT29",
+        "relation_type": "USES",
+        "target_entity": "Mimikatz",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "APT29",
+        "relation_type": "TARGETS",
+        "target_entity": "NATO",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Clause boundary: Volt Typhoon uses Chisel only; APT29 uses PowerShell/Mimikatz and targets NATO.",
+    "provenance_type": "constructed_challenge",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::011",
+    "report_id": "CISA-AA23-347A",
+    "source": "CISA",
+    "publication_date": "2023-12-13",
+    "text": "Microsoft security analysts reported that Chinese state actors compromised telecommunications providers in Hawaii.",
+    "challenge_type": "vendor_attribution",
+    "ground_truth_entities": [
+      {
+        "category": "Organization",
+        "canonical_name": "Microsoft",
+        "surface_text": "Microsoft"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "China",
+        "surface_text": "Chinese"
+      },
+      {
+        "category": "Organization",
+        "canonical_name": "Communications Sector",
+        "surface_text": "telecommunications providers"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "Hawaii",
+        "surface_text": "Hawaii"
+      }
+    ],
+    "ground_truth_relations": [],
+    "notes": "Vendor reporting: Microsoft is reporting source, NOT a victim. No actor explicitly named.",
+    "provenance_type": "constructed_challenge",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::012",
+    "report_id": "UNIT42-LAZARUS-2023",
+    "source": "Unit 42",
+    "publication_date": "2023-09-18",
+    "text": "Mandiant researchers compared the tactical tradecraft of Lazarus Group with that of Sandworm during a joint conference.",
+    "challenge_type": "distractor_no_relation",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "Lazarus Group",
+        "surface_text": "Lazarus Group"
+      },
+      {
+        "category": "ThreatActor",
+        "canonical_name": "Sandworm",
+        "surface_text": "Sandworm"
+      }
+    ],
+    "ground_truth_relations": [],
+    "notes": "Distractor: co-occurrence of two actors with comparative discourse; NO relationship.",
+    "provenance_type": "constructed_challenge",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::013",
+    "report_id": "CROWDSTRIKE-SANDWORM-2023",
+    "source": "CrowdStrike",
+    "publication_date": "2023-11-08",
+    "text": "Sandworm exploited CVE-2022-30190 using weaponized RTF documents to target regional energy distribution networks in Poland.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "Sandworm",
+        "surface_text": "Sandworm"
+      },
+      {
+        "category": "CVE",
+        "canonical_name": "CVE-2022-30190",
+        "surface_text": "CVE-2022-30190"
+      },
+      {
+        "category": "Organization",
+        "canonical_name": "Energy Sector",
+        "surface_text": "regional energy distribution networks"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "Poland",
+        "surface_text": "Poland"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "Sandworm",
+        "relation_type": "EXPLOITS",
+        "target_entity": "CVE-2022-30190",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "Sandworm",
+        "relation_type": "TARGETS",
+        "target_entity": "Energy Sector",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "Sandworm",
+        "relation_type": "TARGETS",
+        "target_entity": "Poland",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Follina exploit targeting critical energy utility in Poland.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::014",
+    "report_id": "SENTINELONE-FIN7-2023",
+    "source": "SentinelOne",
+    "publication_date": "2023-08-14",
+    "text": "FIN7 operators utilized T1566 Phishing to deliver Carbanak malware to hospitality chains across the United States.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "FIN7",
+        "surface_text": "FIN7"
+      },
+      {
+        "category": "Technique",
+        "canonical_name": "T1566 - Phishing",
+        "surface_text": "T1566 Phishing"
+      },
+      {
+        "category": "Malware",
+        "canonical_name": "Carbanak",
+        "surface_text": "Carbanak malware"
+      },
+      {
+        "category": "Organization",
+        "canonical_name": "Retail & Hospitality Sector",
+        "surface_text": "hospitality chains"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "United States",
+        "surface_text": "United States"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "FIN7",
+        "relation_type": "USES_TECHNIQUE",
+        "target_entity": "T1566 - Phishing",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "FIN7",
+        "relation_type": "USES",
+        "target_entity": "Carbanak",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "FIN7",
+        "relation_type": "TARGETS",
+        "target_entity": "Retail & Hospitality Sector",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "FIN7",
+        "relation_type": "TARGETS",
+        "target_entity": "United States",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Technique execution delivering banking trojan to hospitality sector.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::015",
+    "report_id": "CISA-AA23-347A",
+    "source": "CISA",
+    "publication_date": "2023-12-13",
+    "text": "Volt Typhoon employed T1059 Command and Scripting Interpreter using PowerShell and WMI on domain controllers.",
+    "challenge_type": "technique_and_tools",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "Volt Typhoon",
+        "surface_text": "Volt Typhoon"
+      },
+      {
+        "category": "Technique",
+        "canonical_name": "T1059 - Command and Scripting Interpreter",
+        "surface_text": "T1059 Command and Scripting Interpreter"
+      },
+      {
+        "category": "Tool",
+        "canonical_name": "PowerShell",
+        "surface_text": "PowerShell"
+      },
+      {
+        "category": "Tool",
+        "canonical_name": "WMI",
+        "surface_text": "WMI"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "Volt Typhoon",
+        "relation_type": "USES_TECHNIQUE",
+        "target_entity": "T1059 - Command and Scripting Interpreter",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "Volt Typhoon",
+        "relation_type": "USES",
+        "target_entity": "PowerShell",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "Volt Typhoon",
+        "relation_type": "USES",
+        "target_entity": "WMI",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Execution technique leveraging LOLBins.",
+    "provenance_type": "constructed_challenge",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::016",
+    "report_id": "UNIT42-LAZARUS-2023",
+    "source": "Unit 42",
+    "publication_date": "2023-09-18",
+    "text": "Lazarus Group deployed MagicRAT and utilized Chisel to maintain encrypted proxy channels into financial institutions in Japan.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "Lazarus Group",
+        "surface_text": "Lazarus Group"
+      },
+      {
+        "category": "Malware",
+        "canonical_name": "MagicRAT",
+        "surface_text": "MagicRAT"
+      },
+      {
+        "category": "Tool",
+        "canonical_name": "Chisel",
+        "surface_text": "Chisel"
+      },
+      {
+        "category": "Organization",
+        "canonical_name": "Financial Sector",
+        "surface_text": "financial institutions"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "Japan",
+        "surface_text": "Japan"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "Lazarus Group",
+        "relation_type": "USES",
+        "target_entity": "MagicRAT",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "Lazarus Group",
+        "relation_type": "USES",
+        "target_entity": "Chisel",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "Lazarus Group",
+        "relation_type": "TARGETS",
+        "target_entity": "Financial Sector",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "Lazarus Group",
+        "relation_type": "TARGETS",
+        "target_entity": "Japan",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "RAT and proxy tunneling against financial entities.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::017",
+    "report_id": "CISA-LOCKBIT3-2024",
+    "source": "CISA",
+    "publication_date": "2024-02-20",
+    "text": "LockBit operators deployed BlackCat ransomware components alongside PsExec for rapid lateral dissemination across the United Kingdom.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "LockBit",
+        "surface_text": "LockBit"
+      },
+      {
+        "category": "Malware",
+        "canonical_name": "BlackCat",
+        "surface_text": "BlackCat ransomware"
+      },
+      {
+        "category": "Tool",
+        "canonical_name": "PsExec",
+        "surface_text": "PsExec"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "United Kingdom",
+        "surface_text": "United Kingdom"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "LockBit",
+        "relation_type": "USES",
+        "target_entity": "BlackCat",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "LockBit",
+        "relation_type": "USES",
+        "target_entity": "PsExec",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "LockBit",
+        "relation_type": "TARGETS",
+        "target_entity": "United Kingdom",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Ransomware operators using tool for propagation in UK.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::018",
+    "report_id": "MANDIANT-APT29-2024",
+    "source": "Mandiant",
+    "publication_date": "2024-01-25",
+    "text": "APT29 exploited Log4Shell vulnerability CVE-2021-44228 to infiltrate public-facing Apache servers in Ukraine.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "APT29",
+        "surface_text": "APT29"
+      },
+      {
+        "category": "CVE",
+        "canonical_name": "CVE-2021-44228",
+        "surface_text": "CVE-2021-44228"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "Ukraine",
+        "surface_text": "Ukraine"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "APT29",
+        "relation_type": "EXPLOITS",
+        "target_entity": "CVE-2021-44228",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "APT29",
+        "relation_type": "TARGETS",
+        "target_entity": "Ukraine",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Log4Shell remote code execution in Ukraine.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::019",
+    "report_id": "CROWDSTRIKE-SANDWORM-2023",
+    "source": "CrowdStrike",
+    "publication_date": "2023-11-08",
+    "text": "Destructive payloads Industroyer2 and CaddyWiper were deployed by Sandworm against national electric substations.",
+    "challenge_type": "passive_voice",
+    "ground_truth_entities": [
+      {
+        "category": "Malware",
+        "canonical_name": "Industroyer2",
+        "surface_text": "Industroyer2"
+      },
+      {
+        "category": "Malware",
+        "canonical_name": "CaddyWiper",
+        "surface_text": "CaddyWiper"
+      },
+      {
+        "category": "ThreatActor",
+        "canonical_name": "Sandworm",
+        "surface_text": "Sandworm"
+      },
+      {
+        "category": "Organization",
+        "canonical_name": "Energy Sector",
+        "surface_text": "national electric substations"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "Sandworm",
+        "relation_type": "USES",
+        "target_entity": "Industroyer2",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "Sandworm",
+        "relation_type": "USES",
+        "target_entity": "CaddyWiper",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "Sandworm",
+        "relation_type": "TARGETS",
+        "target_entity": "Energy Sector",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Passive voice: dual destructive wipers deployed by GRU unit against grid.",
+    "provenance_type": "constructed_challenge",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::020",
+    "report_id": "CISA-AA23-347A",
+    "source": "CISA",
+    "publication_date": "2023-12-13",
+    "text": "Volt Typhoon maintained stealth by deploying ntdsutil to dump credentials and leveraging Fast Reverse Proxy to exfiltrate data from Guam.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "Volt Typhoon",
+        "surface_text": "Volt Typhoon"
+      },
+      {
+        "category": "Tool",
+        "canonical_name": "ntdsutil",
+        "surface_text": "ntdsutil"
+      },
+      {
+        "category": "Tool",
+        "canonical_name": "Fast Reverse Proxy",
+        "surface_text": "Fast Reverse Proxy"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "Guam",
+        "surface_text": "Guam"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "Volt Typhoon",
+        "relation_type": "USES",
+        "target_entity": "ntdsutil",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "Volt Typhoon",
+        "relation_type": "USES",
+        "target_entity": "Fast Reverse Proxy",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "Volt Typhoon",
+        "relation_type": "TARGETS",
+        "target_entity": "Guam",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Credential dumping utility and proxy tunnel used against Guam.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::021",
+    "report_id": "SENTINELONE-FIN7-2023",
+    "source": "SentinelOne",
+    "publication_date": "2023-08-14",
+    "text": "FIN7 operators deployed proprietary backdoor POWERPLANT and used BloodHound to discover domain trusts.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "FIN7",
+        "surface_text": "FIN7"
+      },
+      {
+        "category": "Malware",
+        "canonical_name": "POWERPLANT",
+        "surface_text": "POWERPLANT"
+      },
+      {
+        "category": "Tool",
+        "canonical_name": "BloodHound",
+        "surface_text": "BloodHound"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "FIN7",
+        "relation_type": "USES",
+        "target_entity": "POWERPLANT",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "FIN7",
+        "relation_type": "USES",
+        "target_entity": "BloodHound",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Proprietary backdoor and Active Directory discovery tool.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::022",
+    "report_id": "CISA-LOCKBIT3-2024",
+    "source": "CISA",
+    "publication_date": "2024-02-20",
+    "text": "LockBit affiliates exploited PrintNightmare flaw CVE-2021-34527 for local privilege escalation.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "LockBit",
+        "surface_text": "LockBit affiliates"
+      },
+      {
+        "category": "CVE",
+        "canonical_name": "CVE-2021-34527",
+        "surface_text": "CVE-2021-34527"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "LockBit",
+        "relation_type": "EXPLOITS",
+        "target_entity": "CVE-2021-34527",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "PrintNightmare spooler exploit.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::023",
+    "report_id": "MANDIANT-APT29-2024",
+    "source": "Mandiant",
+    "publication_date": "2024-01-25",
+    "text": "APT29 heavily relied on T1078 Valid Accounts to bypass multi-factor authentication controls.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "APT29",
+        "surface_text": "APT29"
+      },
+      {
+        "category": "Technique",
+        "canonical_name": "T1078 - Valid Accounts",
+        "surface_text": "T1078 Valid Accounts"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "APT29",
+        "relation_type": "USES_TECHNIQUE",
+        "target_entity": "T1078 - Valid Accounts",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Credential abuse technique.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::024",
+    "report_id": "UNIT42-LAZARUS-2023",
+    "source": "Unit 42",
+    "publication_date": "2023-09-18",
+    "text": "Lazarus Group targeted cryptocurrency exchanges in South Korea to circumvent international sanctions.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "Lazarus Group",
+        "surface_text": "Lazarus Group"
+      },
+      {
+        "category": "Organization",
+        "canonical_name": "Financial Sector",
+        "surface_text": "cryptocurrency exchanges"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "South Korea",
+        "surface_text": "South Korea"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "Lazarus Group",
+        "relation_type": "TARGETS",
+        "target_entity": "Financial Sector",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "Lazarus Group",
+        "relation_type": "TARGETS",
+        "target_entity": "South Korea",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Financial revenue generation targeting crypto sector.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::025",
+    "report_id": "CISA-AA23-347A",
+    "source": "CISA",
+    "publication_date": "2023-12-13",
+    "text": "CISA and the FBI issued joint security guidance regarding edge device hardening across North America.",
+    "challenge_type": "vendor_attribution",
+    "ground_truth_entities": [
+      {
+        "category": "Location",
+        "canonical_name": "North America",
+        "surface_text": "North America"
+      }
+    ],
+    "ground_truth_relations": [],
+    "notes": "Government agencies publishing guidance; no hostile targeting relationship.",
+    "provenance_type": "constructed_challenge",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::026",
+    "report_id": "CROWDSTRIKE-SANDWORM-2023",
+    "source": "CrowdStrike",
+    "publication_date": "2023-11-08",
+    "text": "Sandworm operators used PsExec and Impacket to execute destructive commands across compromised railway systems.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "Sandworm",
+        "surface_text": "Sandworm"
+      },
+      {
+        "category": "Tool",
+        "canonical_name": "PsExec",
+        "surface_text": "PsExec"
+      },
+      {
+        "category": "Tool",
+        "canonical_name": "Impacket",
+        "surface_text": "Impacket"
+      },
+      {
+        "category": "Organization",
+        "canonical_name": "Transportation Systems Sector",
+        "surface_text": "railway systems"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "Sandworm",
+        "relation_type": "USES",
+        "target_entity": "PsExec",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "Sandworm",
+        "relation_type": "USES",
+        "target_entity": "Impacket",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "Sandworm",
+        "relation_type": "TARGETS",
+        "target_entity": "Transportation Systems Sector",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Lateral movement toolsets targeting critical transportation infrastructure.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::027",
+    "report_id": "CISA-AA23-347A",
+    "source": "CISA",
+    "publication_date": "2023-12-13",
+    "text": "Volt Typhoon exploited authentication bypass flaw CVE-2023-46805 to hijack administrative sessions.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "Volt Typhoon",
+        "surface_text": "Volt Typhoon"
+      },
+      {
+        "category": "CVE",
+        "canonical_name": "CVE-2023-46805",
+        "surface_text": "CVE-2023-46805"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "Volt Typhoon",
+        "relation_type": "EXPLOITS",
+        "target_entity": "CVE-2023-46805",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Authentication bypass exploitation.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::028",
+    "report_id": "MANDIANT-APT29-2024",
+    "source": "Mandiant",
+    "publication_date": "2024-01-25",
+    "text": "Credential theft was conducted by APT29 using T1003 OS Credential Dumping across targeted government agencies.",
+    "challenge_type": "passive_voice",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "APT29",
+        "surface_text": "APT29"
+      },
+      {
+        "category": "Technique",
+        "canonical_name": "T1003 - OS Credential Dumping",
+        "surface_text": "T1003 OS Credential Dumping"
+      },
+      {
+        "category": "Organization",
+        "canonical_name": "Municipal Governments",
+        "surface_text": "government agencies"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "APT29",
+        "relation_type": "USES_TECHNIQUE",
+        "target_entity": "T1003 - OS Credential Dumping",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "APT29",
+        "relation_type": "TARGETS",
+        "target_entity": "Municipal Governments",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Passive voice technique execution.",
+    "provenance_type": "constructed_challenge",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::029",
+    "report_id": "UNIT42-LAZARUS-2023",
+    "source": "Unit 42",
+    "publication_date": "2023-09-18",
+    "text": "Lazarus Group operators used PuTTY to tunnel traffic and target aerospace engineering firms.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "Lazarus Group",
+        "surface_text": "Lazarus Group"
+      },
+      {
+        "category": "Tool",
+        "canonical_name": "PuTTY",
+        "surface_text": "PuTTY"
+      },
+      {
+        "category": "Organization",
+        "canonical_name": "Defense Industrial Base",
+        "surface_text": "aerospace engineering firms"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "Lazarus Group",
+        "relation_type": "USES",
+        "target_entity": "PuTTY",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "Lazarus Group",
+        "relation_type": "TARGETS",
+        "target_entity": "Defense Industrial Base",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Tool usage and aerospace sector targeting.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::030",
+    "report_id": "CISA-LOCKBIT3-2024",
+    "source": "CISA",
+    "publication_date": "2024-02-20",
+    "text": "LockBit affiliates deployed AnyDesk for remote desktop control and utilized MegaSync to exfiltrate files.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "LockBit",
+        "surface_text": "LockBit affiliates"
+      },
+      {
+        "category": "Tool",
+        "canonical_name": "AnyDesk",
+        "surface_text": "AnyDesk"
+      },
+      {
+        "category": "Tool",
+        "canonical_name": "MegaSync",
+        "surface_text": "MegaSync"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "LockBit",
+        "relation_type": "USES",
+        "target_entity": "AnyDesk",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "LockBit",
+        "relation_type": "USES",
+        "target_entity": "MegaSync",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Dual remote administration and cloud exfiltration tools.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::031",
+    "report_id": "MANDIANT-APT29-2024",
+    "source": "Mandiant",
+    "publication_date": "2024-01-25",
+    "text": "APT29 used PsExec to execute malicious binaries across remote endpoints.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "APT29",
+        "surface_text": "APT29"
+      },
+      {
+        "category": "Tool",
+        "canonical_name": "PsExec",
+        "surface_text": "PsExec"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "APT29",
+        "relation_type": "USES",
+        "target_entity": "PsExec",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Remote execution utility.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::032",
+    "report_id": "SENTINELONE-FIN7-2023",
+    "source": "SentinelOne",
+    "publication_date": "2023-08-14",
+    "text": "FIN7 did not compromise point-of-sale systems in Japan during this incident.",
+    "challenge_type": "negation",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "FIN7",
+        "surface_text": "FIN7"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "Japan",
+        "surface_text": "Japan"
+      }
+    ],
+    "ground_truth_relations": [],
+    "notes": "Negation: did not compromise; NO TARGETS relation.",
+    "provenance_type": "constructed_challenge",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::033",
+    "report_id": "CISA-AA23-347A",
+    "source": "CISA",
+    "publication_date": "2023-12-13",
+    "text": "Volt Typhoon targeted the Communications Sector and Energy Sector in Guam.",
+    "challenge_type": "multi_target",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "Volt Typhoon",
+        "surface_text": "Volt Typhoon"
+      },
+      {
+        "category": "Organization",
+        "canonical_name": "Communications Sector",
+        "surface_text": "Communications Sector"
+      },
+      {
+        "category": "Organization",
+        "canonical_name": "Energy Sector",
+        "surface_text": "Energy Sector"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "Guam",
+        "surface_text": "Guam"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "Volt Typhoon",
+        "relation_type": "TARGETS",
+        "target_entity": "Communications Sector",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "Volt Typhoon",
+        "relation_type": "TARGETS",
+        "target_entity": "Energy Sector",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "Volt Typhoon",
+        "relation_type": "TARGETS",
+        "target_entity": "Guam",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Multiple infrastructure sector targets in one territory.",
+    "provenance_type": "constructed_challenge",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::034",
+    "report_id": "CROWDSTRIKE-SANDWORM-2023",
+    "source": "CrowdStrike",
+    "publication_date": "2023-11-08",
+    "text": "CrowdStrike analysts published an overview of Russian state-sponsored cyber campaigns across Eastern Europe.",
+    "challenge_type": "vendor_attribution",
+    "ground_truth_entities": [
+      {
+        "category": "Location",
+        "canonical_name": "Russia",
+        "surface_text": "Russian"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "Eastern Europe",
+        "surface_text": "Eastern Europe"
+      }
+    ],
+    "ground_truth_relations": [],
+    "notes": "Vendor overview publication; no actor/target relation.",
+    "provenance_type": "constructed_challenge",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::035",
+    "report_id": "UNIT42-LAZARUS-2023",
+    "source": "Unit 42",
+    "publication_date": "2023-09-18",
+    "text": "VMware Horizon vulnerability CVE-2021-44228 was exploited by Lazarus Group to deploy MagicRAT.",
+    "challenge_type": "passive_voice",
+    "ground_truth_entities": [
+      {
+        "category": "CVE",
+        "canonical_name": "CVE-2021-44228",
+        "surface_text": "CVE-2021-44228"
+      },
+      {
+        "category": "ThreatActor",
+        "canonical_name": "Lazarus Group",
+        "surface_text": "Lazarus Group"
+      },
+      {
+        "category": "Malware",
+        "canonical_name": "MagicRAT",
+        "surface_text": "MagicRAT"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "Lazarus Group",
+        "relation_type": "EXPLOITS",
+        "target_entity": "CVE-2021-44228",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "Lazarus Group",
+        "relation_type": "USES",
+        "target_entity": "MagicRAT",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Passive voice CVE exploitation and payload drop.",
+    "provenance_type": "constructed_challenge",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::036",
+    "report_id": "CISA-LOCKBIT3-2024",
+    "source": "CISA",
+    "publication_date": "2024-02-20",
+    "text": "LockBit affiliates utilized rclone to transfer exfiltrated archives to cloud storage.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "LockBit",
+        "surface_text": "LockBit affiliates"
+      },
+      {
+        "category": "Tool",
+        "canonical_name": "rclone",
+        "surface_text": "rclone"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "LockBit",
+        "relation_type": "USES",
+        "target_entity": "rclone",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Dual-use sync tool utilized for exfiltration.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::037",
+    "report_id": "SENTINELONE-FIN7-2023",
+    "source": "SentinelOne",
+    "publication_date": "2023-08-14",
+    "text": "FIN7 operators deployed PowerShell scripts to automate payload staging.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "FIN7",
+        "surface_text": "FIN7"
+      },
+      {
+        "category": "Tool",
+        "canonical_name": "PowerShell",
+        "surface_text": "PowerShell"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "FIN7",
+        "relation_type": "USES",
+        "target_entity": "PowerShell",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Scripting tool deployment.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::038",
+    "report_id": "MANDIANT-APT29-2024",
+    "source": "Mandiant",
+    "publication_date": "2024-01-25",
+    "text": "APT29 utilized spearphishing emails to target European diplomatic entities in Poland.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "APT29",
+        "surface_text": "APT29"
+      },
+      {
+        "category": "Technique",
+        "canonical_name": "T1566 - Phishing",
+        "surface_text": "spearphishing emails"
+      },
+      {
+        "category": "Organization",
+        "canonical_name": "Municipal Governments",
+        "surface_text": "European diplomatic entities"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "Poland",
+        "surface_text": "Poland"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "APT29",
+        "relation_type": "USES_TECHNIQUE",
+        "target_entity": "T1566 - Phishing",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "APT29",
+        "relation_type": "TARGETS",
+        "target_entity": "Municipal Governments",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "APT29",
+        "relation_type": "TARGETS",
+        "target_entity": "Poland",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Phishing technique targeting diplomatic corps in Poland.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::039",
+    "report_id": "CROWDSTRIKE-SANDWORM-2023",
+    "source": "CrowdStrike",
+    "publication_date": "2023-11-08",
+    "text": "Sandworm targeted water utilities across Ukraine using custom destructive wipers.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "Sandworm",
+        "surface_text": "Sandworm"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "Ukraine",
+        "surface_text": "Ukraine"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "Sandworm",
+        "relation_type": "TARGETS",
+        "target_entity": "Ukraine",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Direct targeting of sovereign infrastructure.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::040",
+    "report_id": "CISA-AA23-347A",
+    "source": "CISA",
+    "publication_date": "2023-12-13",
+    "text": "Volt Typhoon utilized T1190 Exploit Public-Facing Application to bypass perimeter controls.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "Volt Typhoon",
+        "surface_text": "Volt Typhoon"
+      },
+      {
+        "category": "Technique",
+        "canonical_name": "T1190 - Exploit Public-Facing Application",
+        "surface_text": "T1190 Exploit Public-Facing Application"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "Volt Typhoon",
+        "relation_type": "USES_TECHNIQUE",
+        "target_entity": "T1190 - Exploit Public-Facing Application",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "MITRE technique execution.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::041",
+    "report_id": "UNIT42-LAZARUS-2023",
+    "source": "Unit 42",
+    "publication_date": "2023-09-18",
+    "text": "Researchers observed no indications that Lazarus Group deployed Cobalt Strike in these intrusions.",
+    "challenge_type": "negation",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "Lazarus Group",
+        "surface_text": "Lazarus Group"
+      },
+      {
+        "category": "Tool",
+        "canonical_name": "Cobalt Strike",
+        "surface_text": "Cobalt Strike"
+      }
+    ],
+    "ground_truth_relations": [],
+    "notes": "Negation: no indications actor deployed tool; NO USES relation.",
+    "provenance_type": "constructed_challenge",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::042",
+    "report_id": "CISA-LOCKBIT3-2024",
+    "source": "CISA",
+    "publication_date": "2024-02-20",
+    "text": "LockBit affiliates utilized T1486 Data Encrypted for Impact during final extortion phases.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "LockBit",
+        "surface_text": "LockBit affiliates"
+      },
+      {
+        "category": "Technique",
+        "canonical_name": "T1486 - Data Encrypted for Impact",
+        "surface_text": "T1486 Data Encrypted for Impact"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "LockBit",
+        "relation_type": "USES_TECHNIQUE",
+        "target_entity": "T1486 - Data Encrypted for Impact",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Impact technique execution.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::043",
+    "report_id": "SENTINELONE-FIN7-2023",
+    "source": "SentinelOne",
+    "publication_date": "2023-08-14",
+    "text": "FIN7 exploited CVE-2023-38831 to bypass endpoint security products and targeted retail enterprises.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "FIN7",
+        "surface_text": "FIN7"
+      },
+      {
+        "category": "CVE",
+        "canonical_name": "CVE-2023-38831",
+        "surface_text": "CVE-2023-38831"
+      },
+      {
+        "category": "Organization",
+        "canonical_name": "Retail & Hospitality Sector",
+        "surface_text": "retail enterprises"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "FIN7",
+        "relation_type": "EXPLOITS",
+        "target_entity": "CVE-2023-38831",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "FIN7",
+        "relation_type": "TARGETS",
+        "target_entity": "Retail & Hospitality Sector",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Vulnerability exploitation and commercial sector targeting.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::044",
+    "report_id": "MANDIANT-APT29-2024",
+    "source": "Mandiant",
+    "publication_date": "2024-01-25",
+    "text": "NATO issued an alert describing ongoing phishing campaigns conducted by Russian intelligence.",
+    "challenge_type": "vendor_attribution",
+    "ground_truth_entities": [
+      {
+        "category": "Organization",
+        "canonical_name": "NATO",
+        "surface_text": "NATO"
+      },
+      {
+        "category": "Technique",
+        "canonical_name": "T1566 - Phishing",
+        "surface_text": "phishing"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "Russia",
+        "surface_text": "Russian"
+      }
+    ],
+    "ground_truth_relations": [],
+    "notes": "Institutional alert issuance; no hostile relationship.",
+    "provenance_type": "constructed_challenge",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::045",
+    "report_id": "CROWDSTRIKE-SANDWORM-2023",
+    "source": "CrowdStrike",
+    "publication_date": "2023-11-08",
+    "text": "Sandworm utilized living-off-the-land techniques to impair system recovery in Ukraine.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "Sandworm",
+        "surface_text": "Sandworm"
+      },
+      {
+        "category": "Technique",
+        "canonical_name": "T1059 - Command and Scripting Interpreter",
+        "surface_text": "living-off-the-land techniques"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "Ukraine",
+        "surface_text": "Ukraine"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "Sandworm",
+        "relation_type": "USES_TECHNIQUE",
+        "target_entity": "T1059 - Command and Scripting Interpreter",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "Sandworm",
+        "relation_type": "TARGETS",
+        "target_entity": "Ukraine",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "LOLBins technique in Ukraine.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::046",
+    "report_id": "CISA-AA23-347A",
+    "source": "CISA",
+    "publication_date": "2023-12-13",
+    "text": "Volt Typhoon targeted port authorities across the United States to pre-position for disruptive attacks.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "Volt Typhoon",
+        "surface_text": "Volt Typhoon"
+      },
+      {
+        "category": "Organization",
+        "canonical_name": "Transportation Systems Sector",
+        "surface_text": "port authorities"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "United States",
+        "surface_text": "United States"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "Volt Typhoon",
+        "relation_type": "TARGETS",
+        "target_entity": "Transportation Systems Sector",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "Volt Typhoon",
+        "relation_type": "TARGETS",
+        "target_entity": "United States",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Critical maritime transportation target.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::047",
+    "report_id": "UNIT42-LAZARUS-2023",
+    "source": "Unit 42",
+    "publication_date": "2023-09-18",
+    "text": "Lazarus Group executed Mimikatz to dump administrator credentials from LSASS process memory.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "Lazarus Group",
+        "surface_text": "Lazarus Group"
+      },
+      {
+        "category": "Tool",
+        "canonical_name": "Mimikatz",
+        "surface_text": "Mimikatz"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "Lazarus Group",
+        "relation_type": "USES",
+        "target_entity": "Mimikatz",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Credential harvesting tool execution.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::048",
+    "report_id": "CISA-LOCKBIT3-2024",
+    "source": "CISA",
+    "publication_date": "2024-02-20",
+    "text": "LockBit affiliates targeted financial services firms in the United States and Europe.",
+    "challenge_type": "multi_target",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "LockBit",
+        "surface_text": "LockBit affiliates"
+      },
+      {
+        "category": "Organization",
+        "canonical_name": "Financial Sector",
+        "surface_text": "financial services firms"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "United States",
+        "surface_text": "United States"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "Europe",
+        "surface_text": "Europe"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "LockBit",
+        "relation_type": "TARGETS",
+        "target_entity": "Financial Sector",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "LockBit",
+        "relation_type": "TARGETS",
+        "target_entity": "United States",
+        "polarity": "positive"
+      },
+      {
+        "source_entity": "LockBit",
+        "relation_type": "TARGETS",
+        "target_entity": "Europe",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Financial sector and multi-regional targeting.",
+    "provenance_type": "constructed_challenge",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::049",
+    "report_id": "SENTINELONE-FIN7-2023",
+    "source": "SentinelOne",
+    "publication_date": "2023-08-14",
+    "text": "FIN7 operators employed T1003 OS Credential Dumping to seize domain administrator privileges.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "FIN7",
+        "surface_text": "FIN7"
+      },
+      {
+        "category": "Technique",
+        "canonical_name": "T1003 - OS Credential Dumping",
+        "surface_text": "T1003 OS Credential Dumping"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "FIN7",
+        "relation_type": "USES_TECHNIQUE",
+        "target_entity": "T1003 - OS Credential Dumping",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Credential dumping technique.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  },
+  {
+    "sentence_id": "GOLD::050",
+    "report_id": "MANDIANT-APT29-2024",
+    "source": "Mandiant",
+    "publication_date": "2024-01-25",
+    "text": "APT29 targeted Ukrainian government organizations to collect intelligence on geopolitical strategies.",
+    "challenge_type": "standard",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "APT29",
+        "surface_text": "APT29"
+      },
+      {
+        "category": "Organization",
+        "canonical_name": "Ukrainian Government Organizations",
+        "surface_text": "Ukrainian government organizations"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "APT29",
+        "relation_type": "TARGETS",
+        "target_entity": "Ukrainian Government Organizations",
+        "polarity": "positive"
+      }
+    ],
+    "notes": "Espionage targeting of Ukrainian state agencies.",
+    "provenance_type": "paraphrased_cti",
+    "benchmark_type": "synthetic_challenge_set"
+  }
+]

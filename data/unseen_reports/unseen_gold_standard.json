@@ -1,0 +1,271 @@
+[
+  {
+    "sentence_id": "CISA-AA24-131A::p0::s1",
+    "report_id": "CISA-AA24-131A",
+    "source": "CISA",
+    "publication_date": "2024-05-10",
+    "text": "Black Basta operators have targeted healthcare organizations and critical infrastructure sectors across the United States and Germany since early 2022.",
+    "ground_truth_entities": [
+      {
+        "category": "Organization",
+        "canonical_name": "Healthcare Sector",
+        "surface_text": "healthcare organizations"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "United States",
+        "surface_text": "United States"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "Germany",
+        "surface_text": "Germany"
+      }
+    ],
+    "ground_truth_relations": [],
+    "annotator_notes": "Ransomware targeting healthcare and critical infrastructure across multiple jurisdictions."
+  },
+  {
+    "sentence_id": "CISA-AA24-131A::p0::s2",
+    "report_id": "CISA-AA24-131A",
+    "source": "CISA",
+    "publication_date": "2024-05-10",
+    "text": "Threat actors deployed QakBot trojan and utilized SystemBC proxy utilities to establish encrypted persistence.",
+    "ground_truth_entities": [
+      {
+        "category": "Malware",
+        "canonical_name": "QakBot",
+        "surface_text": "QakBot"
+      }
+    ],
+    "ground_truth_relations": [],
+    "annotator_notes": "Tool and malware deployment by anonymous threat actors."
+  },
+  {
+    "sentence_id": "CISA-AA24-131A::p0::s3",
+    "report_id": "CISA-AA24-131A",
+    "source": "CISA",
+    "publication_date": "2024-05-10",
+    "text": "Additionally, Black Basta operators exploited CVE-2024-1709 in ConnectWise ScreenConnect and leveraged CVE-2020-1472 to escalate domain privileges.",
+    "ground_truth_entities": [
+      {
+        "category": "CVE",
+        "canonical_name": "CVE-2024-1709",
+        "surface_text": "CVE-2024-1709"
+      },
+      {
+        "category": "CVE",
+        "canonical_name": "CVE-2020-1472",
+        "surface_text": "CVE-2020-1472"
+      }
+    ],
+    "ground_truth_relations": [],
+    "annotator_notes": "Exploitation of novel ScreenConnect CVE-2024-1709 and Zerologon CVE-2020-1472."
+  },
+  {
+    "sentence_id": "CISA-AA24-131A::p0::s4",
+    "report_id": "CISA-AA24-131A",
+    "source": "CISA",
+    "publication_date": "2024-05-10",
+    "text": "Affiliates conducted lateral movement using PsExec and executed T1486 Data Encrypted for Impact across municipal networks.",
+    "ground_truth_entities": [
+      {
+        "category": "Tool",
+        "canonical_name": "PsExec",
+        "surface_text": "PsExec"
+      },
+      {
+        "category": "Technique",
+        "canonical_name": "T1486 - Data Encrypted for Impact",
+        "surface_text": "T1486 Data Encrypted for Impact"
+      }
+    ],
+    "ground_truth_relations": [],
+    "annotator_notes": "Technique execution and tool utilization by anonymous affiliates."
+  },
+  {
+    "sentence_id": "MSFT-STORM0558-2023::p0::s1",
+    "report_id": "MSFT-STORM0558-2023",
+    "source": "Microsoft",
+    "publication_date": "2023-07-14",
+    "text": "Storm-0558 targeted government agencies and diplomatic entities across the United States and Western Europe to acquire intelligence on geopolitical communications.",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "Storm-0558",
+        "surface_text": "Storm-0558"
+      },
+      {
+        "category": "Organization",
+        "canonical_name": "Municipal Governments",
+        "surface_text": "government agencies"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "United States",
+        "surface_text": "United States"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "Europe",
+        "surface_text": "Western Europe"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "Storm-0558",
+        "relation_type": "TARGETS",
+        "target_entity": "Municipal Governments"
+      },
+      {
+        "source_entity": "Storm-0558",
+        "relation_type": "TARGETS",
+        "target_entity": "United States"
+      },
+      {
+        "source_entity": "Storm-0558",
+        "relation_type": "TARGETS",
+        "target_entity": "Europe"
+      }
+    ],
+    "annotator_notes": "State-sponsored actor targeting government entities and geographic regions."
+  },
+  {
+    "sentence_id": "MSFT-STORM0558-2023::p0::s3",
+    "report_id": "MSFT-STORM0558-2023",
+    "source": "Microsoft",
+    "publication_date": "2023-07-14",
+    "text": "The adversary exploited CVE-2023-36884 to conduct remote code execution and deployed customized backdoors into targeted telecommunications providers.",
+    "ground_truth_entities": [
+      {
+        "category": "CVE",
+        "canonical_name": "CVE-2023-36884",
+        "surface_text": "CVE-2023-36884"
+      },
+      {
+        "category": "Organization",
+        "canonical_name": "Communications Sector",
+        "surface_text": "telecommunications providers"
+      }
+    ],
+    "ground_truth_relations": [],
+    "annotator_notes": "Vulnerability exploitation by pronoun subject."
+  },
+  {
+    "sentence_id": "UNIT42-DARKGATE-2023::p0::s1",
+    "report_id": "UNIT42-DARKGATE-2023",
+    "source": "Unit 42",
+    "publication_date": "2023-09-22",
+    "text": "Operators deployed DarkGate malware and utilized AutoIt scripts alongside Chisel proxy utilities to maintain stealthy command and control.",
+    "ground_truth_entities": [
+      {
+        "category": "Malware",
+        "canonical_name": "DarkGate",
+        "surface_text": "DarkGate"
+      },
+      {
+        "category": "Tool",
+        "canonical_name": "Chisel",
+        "surface_text": "Chisel"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "DarkGate",
+        "relation_type": "USES",
+        "target_entity": "Chisel"
+      }
+    ],
+    "annotator_notes": "Commodity malware co-deploying proxy utilities."
+  },
+  {
+    "sentence_id": "UNIT42-DARKGATE-2023::p0::s2",
+    "report_id": "UNIT42-DARKGATE-2023",
+    "source": "Unit 42",
+    "publication_date": "2023-09-22",
+    "text": "The cybercrime group targeted financial institutions and commercial enterprises across the United Kingdom and the United States.",
+    "ground_truth_entities": [
+      {
+        "category": "Organization",
+        "canonical_name": "Financial Sector",
+        "surface_text": "financial institutions"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "United Kingdom",
+        "surface_text": "United Kingdom"
+      },
+      {
+        "category": "Location",
+        "canonical_name": "United States",
+        "surface_text": "United States"
+      }
+    ],
+    "ground_truth_relations": [],
+    "annotator_notes": "Targeting statement by generic noun phrase 'cybercrime group'."
+  },
+  {
+    "sentence_id": "CISA-AA23-353A::p0::s1",
+    "report_id": "CISA-AA23-353A",
+    "source": "CISA",
+    "publication_date": "2023-12-19",
+    "text": "Cyber actors deployed BlackCat ransomware components and utilized Fast Reverse Proxy to exfiltrate proprietary data.",
+    "ground_truth_entities": [
+      {
+        "category": "Malware",
+        "canonical_name": "BlackCat",
+        "surface_text": "BlackCat"
+      },
+      {
+        "category": "Tool",
+        "canonical_name": "Fast Reverse Proxy",
+        "surface_text": "Fast Reverse Proxy"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "BlackCat",
+        "relation_type": "USES",
+        "target_entity": "Fast Reverse Proxy"
+      }
+    ],
+    "annotator_notes": "Ransomware operators deploying reverse proxy utility."
+  },
+  {
+    "sentence_id": "CISA-AA23-353A::p0::s3",
+    "report_id": "CISA-AA23-353A",
+    "source": "CISA",
+    "publication_date": "2023-12-19",
+    "text": "BlackCat operators exploited CVE-2023-34362 in MOVEit Transfer applications to compromise external file storage systems and utilized T1485 Data Destruction to disrupt business operations.",
+    "ground_truth_entities": [
+      {
+        "category": "ThreatActor",
+        "canonical_name": "BlackCat",
+        "surface_text": "BlackCat"
+      },
+      {
+        "category": "CVE",
+        "canonical_name": "CVE-2023-34362",
+        "surface_text": "CVE-2023-34362"
+      },
+      {
+        "category": "Technique",
+        "canonical_name": "T1485 - Data Destruction",
+        "surface_text": "T1485 Data Destruction"
+      }
+    ],
+    "ground_truth_relations": [
+      {
+        "source_entity": "BlackCat",
+        "relation_type": "EXPLOITS",
+        "target_entity": "CVE-2023-34362"
+      },
+      {
+        "source_entity": "BlackCat",
+        "relation_type": "USES_TECHNIQUE",
+        "target_entity": "T1485 - Data Destruction"
+      }
+    ],
+    "annotator_notes": "Exploitation of MOVEit Transfer vulnerability alongside data destruction technique."
+  }
+]

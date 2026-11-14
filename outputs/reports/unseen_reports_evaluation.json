@@ -1,0 +1,227 @@
+{
+  "unseen_evaluation_overview": {
+    "unseen_reports_count": 4,
+    "unseen_paragraphs_count": 4,
+    "unseen_sentences_count": 17,
+    "total_entities_extracted": 40,
+    "total_relations_extracted": 11,
+    "provenance_compliance_rate": "100.0%",
+    "provenance_metadata_failures": 0
+  },
+  "unseen_accuracy_evaluation": {
+    "annotated_sentences_count": 10,
+    "unseen_ner_performance": {
+      "ThreatActor": {
+        "true_positives": 1,
+        "false_positives": 0,
+        "false_negatives": 1,
+        "precision": 1.0,
+        "recall": 0.5,
+        "f1_score": 0.6667
+      },
+      "Malware": {
+        "true_positives": 3,
+        "false_positives": 1,
+        "false_negatives": 0,
+        "precision": 0.75,
+        "recall": 1.0,
+        "f1_score": 0.8571
+      },
+      "Tool": {
+        "true_positives": 3,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "CVE": {
+        "true_positives": 4,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "Technique": {
+        "true_positives": 2,
+        "false_positives": 1,
+        "false_negatives": 0,
+        "precision": 0.6667,
+        "recall": 1.0,
+        "f1_score": 0.8
+      },
+      "Organization": {
+        "true_positives": 4,
+        "false_positives": 1,
+        "false_negatives": 0,
+        "precision": 0.8,
+        "recall": 1.0,
+        "f1_score": 0.8889
+      },
+      "Location": {
+        "true_positives": 6,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "OVERALL": {
+        "true_positives": 23,
+        "false_positives": 3,
+        "false_negatives": 1,
+        "precision": 0.8846,
+        "recall": 0.9583,
+        "f1_score": 0.92
+      }
+    },
+    "unseen_relation_performance": {
+      "USES": {
+        "true_positives": 2,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "TARGETS": {
+        "true_positives": 3,
+        "false_positives": 1,
+        "false_negatives": 0,
+        "precision": 0.75,
+        "recall": 1.0,
+        "f1_score": 0.8571
+      },
+      "EXPLOITS": {
+        "true_positives": 1,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "USES_TECHNIQUE": {
+        "true_positives": 1,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0
+      },
+      "OVERALL": {
+        "true_positives": 7,
+        "false_positives": 1,
+        "false_negatives": 0,
+        "precision": 0.875,
+        "recall": 1.0,
+        "f1_score": 0.9333
+      }
+    }
+  },
+  "unseen_entity_categories": {
+    "Organization": 9,
+    "Location": 8,
+    "Malware": 6,
+    "CVE": 4,
+    "Technique": 9,
+    "Tool": 3,
+    "ThreatActor": 1
+  },
+  "unseen_relationship_types": {
+    "TARGETS": 5,
+    "USES_TECHNIQUE": 2,
+    "EXPLOITS": 2,
+    "USES": 2
+  },
+  "novel_entity_discovery_validation": {
+    "total_novel_entities_evaluated": 5,
+    "confirmed_genuine_discoveries": 5,
+    "discovery_validation_accuracy": "100.0%",
+    "audit_table": [
+      {
+        "surface_text": "QakBot",
+        "predicted_category": "Malware",
+        "canonical_name": "QakBot",
+        "verified_ground_truth": "Genuine Malware (Modular Banking Trojan & Loader, MITRE ATT&CK S0650, historically leveraged by Black Basta)",
+        "validation_status": "GENUINE_POSITIVE",
+        "is_correct_discovery": true,
+        "analyst_notes": "Successfully discovered out-of-vocabulary malware payload absent from static gazetteer via ML morphology."
+      },
+      {
+        "surface_text": "CVE-2024-1709",
+        "predicted_category": "CVE",
+        "canonical_name": "CVE-2024-1709",
+        "verified_ground_truth": "Genuine CVE (ConnectWise ScreenConnect Authentication Bypass, CVSS 10.0 critical flaw actively exploited in 2024)",
+        "validation_status": "GENUINE_POSITIVE",
+        "is_correct_discovery": true,
+        "analyst_notes": "Successfully extracted novel 2024 zero-day vulnerability via regex pattern recognition."
+      },
+      {
+        "surface_text": "Storm-0558",
+        "predicted_category": "ThreatActor",
+        "canonical_name": "Storm-0558",
+        "verified_ground_truth": "Genuine Threat Actor (Microsoft designation for China-based espionage operator targeting government email accounts)",
+        "validation_status": "GENUINE_POSITIVE",
+        "is_correct_discovery": true,
+        "analyst_notes": "Successfully discovered novel threat actor cluster name via ML contextual token features ('threat actor Storm-0558')."
+      },
+      {
+        "surface_text": "CVE-2023-36884",
+        "predicted_category": "CVE",
+        "canonical_name": "CVE-2023-36884",
+        "verified_ground_truth": "Genuine CVE (Microsoft Windows & Office HTML Remote Code Execution vulnerability exploited by state actors in 2023)",
+        "validation_status": "GENUINE_POSITIVE",
+        "is_correct_discovery": true,
+        "analyst_notes": "Successfully extracted novel 2023 remote code execution vulnerability."
+      },
+      {
+        "surface_text": "DarkGate",
+        "predicted_category": "Malware",
+        "canonical_name": "DarkGate",
+        "verified_ground_truth": "Genuine Malware (Prominent commercial modular loader distributed via malvertising campaigns, reported by Unit 42)",
+        "validation_status": "GENUINE_POSITIVE",
+        "is_correct_discovery": true,
+        "analyst_notes": "Successfully discovered novel commodity malware loader absent from static dictionary."
+      }
+    ]
+  },
+  "novel_entity_discovery_rate": {
+    "total_novel_entities_discovered": 5,
+    "validation_accuracy": "100.0%"
+  },
+  "per_report_breakdown": [
+    {
+      "report_id": "CISA-AA24-131A",
+      "title": "CISA Alert AA24-131A: StopRansomware - Black Basta Ransomware Operations",
+      "source": "CISA",
+      "publication_date": "2024-05-10",
+      "entities_found": 10,
+      "relations_found": 0
+    },
+    {
+      "report_id": "MSFT-STORM0558-2023",
+      "title": "Microsoft Threat Intelligence: Analysis of Storm-0558 Targeting of Government Email Systems",
+      "source": "Microsoft",
+      "publication_date": "2023-07-14",
+      "entities_found": 11,
+      "relations_found": 7
+    },
+    {
+      "report_id": "UNIT42-DARKGATE-2023",
+      "title": "Unit 42 Threat Frontier: DarkGate Modular Loader Exploiting Enterprise Networks",
+      "source": "Unit 42",
+      "publication_date": "2023-09-22",
+      "entities_found": 7,
+      "relations_found": 1
+    },
+    {
+      "report_id": "CISA-AA23-353A",
+      "title": "CISA Alert AA23-353A: #StopRansomware - ALPHV BlackCat Ransomware Exploits",
+      "source": "CISA",
+      "publication_date": "2023-12-19",
+      "entities_found": 12,
+      "relations_found": 3
+    }
+  ]
+}

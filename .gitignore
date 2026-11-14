@@ -1,0 +1,85 @@
+# Python byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+env/
+venv/
+ENV/
+.venv/
+
+# Pytest / unit tests cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Temporary and unpack folders
+temp_person2_unpacked/
+temp_person3_unpacked/
+*.log
+*.bak
+*.bak.*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Streamlit local secrets (if any)
+.streamlit/secrets.toml
+
+# Scratch and development debug scripts
+analyze_fp.py
+check_link_labels.py
+diagnose_threatactor_fp.py
+print_fp_sample.py
+sanitize_annotations.py
+test_artifact_masking.py
+test_fix_a.py
+
+# Redundant duplicate dataset copies (canonical datasets are in data/annoctr_source/)
+ner_test.jsonl
+ner_train.jsonl
+data/ner_test.jsonl
+data/ner_train.jsonl
+
+# Legacy frozen handoffs and internal debug directories
+data/baseline_frozen/
+data/ner_artifact_cleaned/
+data/ner_frozen_dev_passed/
+data/v1_frozen_handoff/
+
+# Intermediate dumps and audit artifacts
+scripts/notebook_dump.txt
+scripts/inspect_person3_notebook.py
+scripts/audit_relation_sample.py
+scripts/audit_suspicious_entities.py
+scripts/generate_genuine_100_relation_audit.py
+tests/compare_v1_v2.py
+
+# Intermediate CSV and audit reports
+outputs/reports/threatactor_false_positives_dev*.csv
+outputs/reports/suspicious_entities.json
+outputs/reports/relation_sample_100_audit.json
+outputs/reports/annoctr_ner_evaluation_baseline_frozen.json
