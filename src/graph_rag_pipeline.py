@@ -1,8 +1,9 @@
 """End-to-end Graph-Augmented RAG orchestration with NLI Evidence Verification."""
 from __future__ import annotations
 import logging
+import re
 from dataclasses import asdict, is_dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple, Sequence
 
 from src.hybrid_graph_rag import HybridGraphRAG
 from src.evidence_fusion import EvidenceFusion
@@ -103,6 +104,96 @@ class GraphRAGPipeline:
 
         return evidence_items
 
+    def _extract_subject_object(self, claim: str) -> Tuple[Optional[str], Optional[str]]:
+        """Extract subject and object strings from a relation claim."""
+        claim_str = str(claim).strip()
+        m = re.match(
+            r"^\s*(.+?)\s+(?:USES|TARGETS|EXPLOITS|USES_TECHNIQUE|[A-Z_]{2,})\s+(.+?)\.?\s*$",
+            claim_str,
+            flags=re.IGNORECASE,
+        )
+        if m:
+            subj = m.group(1).strip()
+            obj = m.group(2).strip().rstrip(".")
+            return subj, obj
+        return None, None
+
+    def _get_entity_terms(self, name: str) -> set[str]:
+        """Get lowercase name and all known MITRE/CTI aliases for an entity."""
+        terms = set()
+        raw = (name or "").strip()
+        if not raw:
+            return terms
+
+        clean = re.sub(
+            r"^(?:ThreatActor|Malware|Tool|Organization|Location|Technique|Vulnerability)::",
+            "",
+            raw,
+        ).strip()
+        clean_lower = clean.lower()
+        terms.add(clean_lower)
+        terms.add(clean_lower.replace(" ", ""))
+        terms.add(clean_lower.replace("-", ""))
+        terms.add(clean_lower.replace("_", ""))
+
+        try:
+            from src.nlp.gazetteer import THREAT_ACTORS, MALWARE, TOOLS
+            for registry in (THREAT_ACTORS, MALWARE, TOOLS):
+                for canon, data in registry.items():
+                    canon_clean = canon.lower()
+                    aliases = [a.lower() for a in data.get("aliases", [])]
+                    all_forms = {canon_clean, *aliases}
+                    if clean_lower in all_forms:
+                        terms.update(all_forms)
+        except Exception:
+            pass
+
+        return {t for t in terms if len(t) >= 2}
+
+    def _item_mentions_entity(self, item: Any, terms: set[str]) -> bool:
+        """Check if an evidence item mentions at least one term from terms."""
+        subj = getattr(item, "subject", "") or ""
+        obj = getattr(item, "object", "") or ""
+        for field in (subj, obj):
+            f_clean = re.sub(r"^[A-Za-z]+::", "", str(field)).strip().lower()
+            if f_clean and (f_clean in terms or any(t == f_clean for t in terms)):
+                return True
+
+        text = (
+            getattr(item, "evidence_text", None)
+            or getattr(item, "text", None)
+            or getattr(item, "evidence", None)
+            or (item.get("evidence_text") if isinstance(item, dict) else "")
+            or (item.get("text") if isinstance(item, dict) else "")
+            or ""
+        ).lower()
+
+        for t in terms:
+            if re.search(r"\b" + re.escape(t) + r"\b", text):
+                return True
+            if len(t) >= 4 and t in text:
+                return True
+
+        return False
+
+    def _filter_evidence_for_claim(self, claim: str, items: Sequence[Any]) -> List[Any]:
+        """Filter evidence items to only those that mention both the claim's subject and object."""
+        subj, obj = self._extract_subject_object(claim)
+        if not subj or not obj:
+            return list(items)
+
+        subj_terms = self._get_entity_terms(subj)
+        obj_terms = self._get_entity_terms(obj)
+
+        relevant = []
+        for item in items:
+            has_subj = self._item_mentions_entity(item, subj_terms)
+            has_obj = self._item_mentions_entity(item, obj_terms)
+            if has_subj and has_obj:
+                relevant.append(item)
+
+        return relevant
+
     def _verify_fused_results(
         self,
         fused: List[Dict[str, Any]],
@@ -138,8 +229,33 @@ class GraphRAGPipeline:
 
         aggregated_claims = []
         for claim in claims:
+            # Filter evidence items to only those that mention both the claim's subject and object (alias-aware)
+            relevant_items = self._filter_evidence_for_claim(claim, flagged_items)
+
+            if not relevant_items:
+                agg = self.claim_aggregator.aggregate(claim, [])
+                agg_dict = agg.to_dict()
+                agg_dict["duplicate_count"] = 0
+                agg_dict["unique_supporting_sources"] = []
+                agg_dict["non_duplicate_supporting_count"] = 0
+                agg_dict["resolution"] = {
+                    "claim": claim,
+                    "classification": "NO_CONFLICT",
+                    "has_conflict": False,
+                    "conflict_type": None,
+                    "time_delta_days": None,
+                    "explanation": "No relevant evidence mentioning both subject and object found in corpus.",
+                    "supporting_sources": [],
+                    "contradicting_sources": [],
+                    "supporting_dates": [],
+                    "contradicting_dates": [],
+                    "recommended_action": "Treat claim as unverified / novel until primary reporting emerges.",
+                }
+                aggregated_claims.append(agg_dict)
+                continue
+
             predictions = []
-            for ev_item in flagged_items:
+            for ev_item in relevant_items:
                 pred = self.verifier.verify_evidence(ev_item, override_claim=claim)
                 pred.is_duplicate = getattr(ev_item, "is_duplicate", False)
                 pred.duplicate_of = getattr(ev_item, "duplicate_of", None)

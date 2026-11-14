@@ -90,11 +90,11 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Preset Demo Reports
+# Preset Demo Reports (Curated Demonstration Scenarios)
 PRESET_REPORTS = {
-    "Preset 1: APT28 Campaign Targeting NATO (Corroborated)": {
-        "title": "APT28 Deploys Zebrocy Against European Government & NATO Bodies",
-        "source": "QuoIntelligence",
+    "Preset 1: APT28 Campaign Targeting NATO (QuoIntelligence style)": {
+        "title": "APT28 Deploys Zebrocy Against European Government & NATO Bodies [Simulated]",
+        "source": "Simulated report (QuoIntelligence style)",
         "date": "2021-05-15",
         "text": (
             "In recent intelligence updates, the threat actor APT28 (also tracked as Fancy Bear) was observed "
@@ -104,9 +104,9 @@ PRESET_REPORTS = {
             "during the 2020 operations."
         ),
     },
-    "Preset 2: Emotet Takedown (Temporal Supersedence & Contradiction)": {
-        "title": "International Law Enforcement Action Disrupts Emotet Infrastructure",
-        "source": "Europol / CISA",
+    "Preset 2: Emotet Takedown (Europol / CISA style)": {
+        "title": "International Law Enforcement Action Disrupts Emotet Infrastructure [Simulated]",
+        "source": "Simulated report (Europol / CISA style)",
         "date": "2021-05-20",
         "text": (
             "Following joint multinational law enforcement coordination in early 2021, authorities disrupted the Emotet botnet. "
@@ -115,9 +115,9 @@ PRESET_REPORTS = {
             "independent phishing networks."
         ),
     },
-    "Preset 3: TrickBot-Emotet Malware Delivery Partnership (Multi-Source Corroboration)": {
-        "title": "TrickBot Operators Leverage Emotet Botnet Loader Services",
-        "source": "Intel 471",
+    "Preset 3: TrickBot-Emotet Malware Delivery Partnership (Intel 471 & Zscaler style)": {
+        "title": "TrickBot Operators Leverage Emotet Botnet Loader Services [Simulated]",
+        "source": "Simulated report (Intel 471 style)",
         "date": "2020-11-20",
         "text": (
             "During late 2020, Intel 471 observed the Trickbot gang partnering with Emotet operators. In these coordinated campaigns, "
@@ -125,9 +125,9 @@ PRESET_REPORTS = {
             "command-and-control servers to install Trickbot on compromised systems."
         ),
     },
-    "Preset 4: Novel Threat Intelligence (Sandworm & Cyclops Blink - Dynamic Graph Expansion)": {
-        "title": "Sandworm Deploys Cyclops Blink Against Ukrainian Critical Infrastructure",
-        "source": "CISA / UK NCSC",
+    "Preset 4: Novel Threat Intelligence (Sandworm & Cyclops Blink - CISA / UK NCSC style)": {
+        "title": "Sandworm Deploys Cyclops Blink Against Ukrainian Critical Infrastructure [Simulated]",
+        "source": "Simulated report (CISA / UK NCSC style)",
         "date": "2024-02-23",
         "text": (
             "In recent threat operations, the Russian state-sponsored threat group Sandworm deployed the Cyclops Blink modular framework. "
@@ -300,7 +300,7 @@ def main():
             # Evidence Verification Section
             st.markdown("##### 🔎 Evidence-Grounded Verification & Context Resolution")
             st.caption(
-                "Cross-referencing candidate propositions against the 104-report corpus using Hybrid RAG, "
+                "Cross-referencing candidate propositions against the 104-report corpus (5,991 segments, 1,400-node baseline graph) using Hybrid RAG, "
                 "DeBERTa-v3 cross-encoder NLI, duplicate suppression, and CTI temporal contradiction resolution."
             )
 
@@ -319,13 +319,15 @@ def main():
                         "SUPPORTED": "verif-card-supported",
                         "CONTRADICTED": "verif-card-contradicted",
                         "CONFLICTING_EVIDENCE": "verif-card-conflict",
+                        "INSUFFICIENT_EVIDENCE": "verif-card-insufficient",
                     }.get(status, "verif-card-insufficient")
 
                     status_icon = {
                         "SUPPORTED": "✅ SUPPORTED",
                         "CONTRADICTED": "❌ CONTRADICTED",
                         "CONFLICTING_EVIDENCE": "⚠️ CONFLICTING EVIDENCE",
-                    }.get(status, "⚪ INSUFFICIENT EVIDENCE")
+                        "INSUFFICIENT_EVIDENCE": "⚪ NO EVIDENCE IN CORPUS",
+                    }.get(status, "⚪ UNVERIFIED")
 
                     is_neg_assertion = v.get("polarity") == "negative"
                     pol_badge = " · <span style='color: #fdba74; font-weight: 600;'>⚠️ NEGATIVE ASSERTION (Provenance preserved; excluded from Knowledge Graph)</span>" if is_neg_assertion else ""
@@ -347,12 +349,16 @@ def main():
                             unsafe_allow_html=True,
                         )
 
-                        # Tally row
-                        m1, m2, m3, m4 = st.columns(4)
-                        m1.metric("Supporting", f"{v['supporting_count']} ({v['non_duplicate_supporting_count']} unique)")
-                        m2.metric("Contradicting", v['contradicting_count'])
-                        m3.metric("Neutral", v['neutral_count'])
-                        m4.metric("Duplicates Suppressed", v['duplicate_count'])
+                        # Tally row / No Evidence state
+                        total_ev = v.get("total_evidence", v.get("supporting_count", 0) + v.get("contradicting_count", 0) + v.get("neutral_count", 0))
+                        if status == "INSUFFICIENT_EVIDENCE" or total_ev == 0:
+                            st.info("ℹ️ **No matching evidence found in historical corpus.** Neither corroborating nor contradicting intelligence mentioning both entities exists in the baseline dataset.")
+                        else:
+                            m1, m2, m3, m4 = st.columns(4)
+                            m1.metric("Supporting", f"{v['supporting_count']} ({v['non_duplicate_supporting_count']} unique)", help="Entailed evidence passages from corpus")
+                            m2.metric("Contradicting", v['contradicting_count'], help="Contradicting evidence passages")
+                            m3.metric("Neutral", v['neutral_count'], help="Neutral / background passages")
+                            m4.metric("Duplicates", v['duplicate_count'], help="Intra-vendor duplicate passages suppressed")
 
                         if v.get("unique_supporting_sources"):
                             num_pubs = len(v['unique_supporting_sources'])

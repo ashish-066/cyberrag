@@ -358,6 +358,37 @@ class TestIntegratedVerification(unittest.TestCase):
         self.assertEqual(len(dups), 1)
         self.assertEqual(dups[0]["duplicate_of"], "A000166")
 
+    def test_10_unrelated_passage_yields_insufficient_evidence(self):
+        """Passage discussing unrelated entity (e.g. Taurus sandbox evasion) must yield INSUFFICIENT_EVIDENCE for Sandworm USES Cyclops Blink."""
+        unrelated_dense = [
+            {
+                "report_id": "REP-TAURUS-01",
+                "segment_id": "REP-TAURUS-01::p1::s1",
+                "text": "Taurus malware employs advanced sandbox evasion techniques to bypass virtualized analysis.",
+                "source": "Zscaler",
+                "publication_date": "2021-03-01",
+                "score": 0.72,
+            }
+        ]
+        retriever = MockRetriever(graph_items=[], dense_items=unrelated_dense)
+        # Verifier is set to contradiction mode - without the entity filter it would falsely score contradiction
+        verifier = MockVerifier(mode="contradiction")
+        pipeline = GraphRAGPipeline(retriever=retriever, verifier=verifier)
+
+        res = pipeline.ask(
+            "Does Sandworm use Cyclops Blink?",
+            verify=True,
+            verification_claims=["Sandworm USES Cyclops Blink."],
+        )
+        verif = res.get("verification", {})
+        self.assertEqual(verif["status"], "INSUFFICIENT_EVIDENCE")
+        claims = verif.get("claims", [])
+        self.assertEqual(len(claims), 1)
+        self.assertEqual(claims[0]["status"], "INSUFFICIENT_EVIDENCE")
+        self.assertEqual(claims[0]["total_evidence"], 0)
+        # Verifier was never called with the irrelevant passage
+        self.assertEqual(len(verifier.call_history), 0)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -13,7 +13,7 @@
 | **02:30 – 05:00** | **System Architecture** | Multi-stage pipeline: Cyber NLP (NER + clause-aware relation extraction) $\rightarrow$ Typed Knowledge Graph $\rightarrow$ Hybrid Dense/BM25/Graph Retrieval $\rightarrow$ DeBERTa-v3 Cross-Encoder NLI $\rightarrow$ Multi-publisher Claim Aggregator $\rightarrow$ Context Resolver. |
 | **05:00 – 10:30** | **Live Interactive Platform Demo** | Run `app.py` through the 4 live demo scenarios (Corroboration $\rightarrow$ Temporal Supersedence $\rightarrow$ Duplicate Suppression $\rightarrow$ Dynamic Graph Expansion). |
 | **10:30 – 12:30** | **Core Research Contributions** | 1) Clause-aware extraction with vendor & spatial trigger suppression; 2) Intra-publisher duplicate passage detection; 3) 4-tier CTI contradiction taxonomy (`TEMPORAL_SUPERSEDENCE`, `CAMPAIGN_DIVERGENCE`, `GENUINE_ATTRIBUTION_DISPUTE`); 4) Structured provenance-grounded evidence reporting. |
-| **12:30 – 15:00** | **Evaluation Metrics & Q&A** | 1,400 graph nodes, 329 edges, 374 validated assertions, 7,570 corpus segments, 58/58 passing unit tests, and real-world AnnoCTR empirical benchmark evaluation. |
+| **12:30 – 15:00** | **Evaluation Metrics & Q&A** | 1,400 graph nodes, 329 edges, 374 validated assertions, 5,991 corpus segments, 59/59 passing unit tests, and real-world AnnoCTR empirical benchmark evaluation. |
 
 ---
 
@@ -119,4 +119,4 @@ When presenting evaluation results, distinguish between evaluation settings:
 3. **Unseen CTI Generalization**:
    * Evaluated on 4 novel threat reports: **F1 = 0.9200** with **100% provenance metadata compliance**.
 4. **Unit Test Suite**:
-   * **58/58 unit tests passing** across 13 test suites in ~45 seconds (`python run_tests.py`).
+   * **59/59 unit tests passing** across 13 test suites in ~92 seconds (`python run_tests.py`).

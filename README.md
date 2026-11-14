@@ -6,7 +6,7 @@
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.30+-FF4B4B.svg)](https://streamlit.io/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-EE4C2C.svg)](https://pytorch.org/)
 [![HuggingFace](https://img.shields.io/badge/Transformers-DeBERTa--v3-yellow.svg)](https://huggingface.co/cross-encoder/nli-deberta-v3-base)
-[![Tests: 58 Passing](https://img.shields.io/badge/Tests-58%20Passing-brightgreen.svg)](tests/)
+[![Tests: 59 Passing](https://img.shields.io/badge/Tests-59%20Passing-brightgreen.svg)](tests/)
 
 ---
 
@@ -85,13 +85,13 @@ The integrated baseline system operates over the following verified corpus metri
 | :--- | :--- | :--- |
 | **Baseline Graph Nodes** | **1,400** | Canonical threat actors, malware families, tools, CVEs, techniques, and sectors (combining MITRE ATT&CK ontology with extracted entities). |
 | **Baseline Graph Edges** | **329** | Consolidated typed relational edges carrying multi-source provenance metadata. |
-| **Baseline Assertions** | **374** | Discrete sentence-grounded relationship assertions with publication dates and sources. |
+| **Baseline Assertions** | **374** | Discrete sentence-grounded relationship assertions with publication dates and sources. All records carry `trust_level: "unverified"` and `human_verified: false` denoting automated rule-based extraction without manual human review. |
 | **Corpus Text Segments** | **5,991** | Paragraph- and sentence-level text chunks indexed across 2,698 paragraphs for dense and BM25 retrieval. |
 | **MITRE ATT&CK Registry** | **1,726** | Canonical definitions ingested from STIX 2.1 Enterprise bundle (178 Actors, 747 Malware, 95 Tools, 706 Techniques). |
 | **Precomputed Embeddings** | **9.2 MB** | 384-dim dense embeddings (`data/segment_embeddings_minilm.npy`) enabling instant cold starts. |
 
-> **Note on Assertion Metadata (`trust_level` vs `verification_status`)**:  
-> In `data/assertions.jsonl`, each assertion record explicitly carries `"trust_level": "trusted"`, `"human_verified": false`, and `"verification_status": "unverified"`. The field `trust_level: "trusted"` is an internal pipeline label denoting that the relation passed automated clause-aware syntactic rules and entity-linking validation filters for inclusion into the baseline graph. It does not indicate manual line-by-line verification by a human analyst.
+> **Note on Assertion Verification Status**:  
+> In `data/assertions.jsonl`, each assertion record explicitly carries `"trust_level": "unverified"`, `"human_verified": false`, and `"verification_status": "unverified"`. These triples were generated via automated clause-aware syntactic extraction and entity-linking validation rules. They have not undergone manual line-by-line verification by a human intelligence analyst.
 
 ---
 
@@ -120,16 +120,17 @@ When an analyst uploads a custom PDF or TXT report in the Streamlit application:
 
 ## 5. Demonstration Scenarios (Streamlit Presets)
 
-The platform includes four pre-configured operational scenarios validating distinct capabilities:
+The platform includes four pre-configured operational scenarios validating distinct capabilities using simulated demonstration reports modeled on primary intelligence publishers:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│ Preset 1: APT28 Campaign Targeting NATO (Corroborated Multi-Source Intelligence)      │
+│ Preset 1: APT28 Campaign Targeting NATO (Simulated QuoIntelligence-Style Report)       │
 │ • Validates: Clause-aware extraction with spatial trigger suppression.                 │
 │ • Result: APT28 USES Zebrocy (SUPPORTED); APT28 TARGETS NATO (SUPPORTED).              │
 │ • Detail: "across Europe" suppressed from spatial targeting to prevent false targets.  │
+│   Corroborated against QuoIntelligence reporting in the historical corpus.             │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
-│ Preset 2: Emotet Infrastructure Takedown (Temporal Supersedence Resolution)            │
+│ Preset 2: Emotet Infrastructure Takedown (Simulated Europol / CISA-Style Report)       │
 │ • Validates: Context-aware contradiction resolution over time.                         │
 │ • Proposition: "Emotet USES TrickBot."                                                 │
 │ • Historical Evidence (2020-10-15, Intel 471): Entailment (Emotet distributed TrickBot)│
@@ -137,15 +138,17 @@ The platform includes four pre-configured operational scenarios validating disti
 │ • Result: CONFLICTING_EVIDENCE -> TEMPORAL_SUPERSEDENCE (+217 days, CONTRA_LATER).     │
 │ • Interpretation: Operational shift over time, not a historical contradiction.        │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
-│ Preset 3: TrickBot-Emotet Malware Delivery Partnership (Duplicate Suppression)         │
+│ Preset 3: TrickBot-Emotet Malware Delivery Partnership (Simulated Intel 471-Style)     │
 │ • Validates: Distinguishing independent vendor consensus from duplicated text.         │
 │ • Result: SUPPORTED across 2 distinct publishers (Intel 471 & Zscaler).                │
 │ • Detail: 3 duplicated text passages identified and suppressed from consensus count.   │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
-│ Preset 4: Sandworm & Cyclops Blink (Novel Threat Intel & Dynamic Graph Expansion)      │
-│ • Validates: Safe, non-destructive ingestion of novel entities.                        │
-│ • Result: In-memory expansion (+2 nodes, +5 edges).                                   │
-│ • Detail: Novel nodes render in glowing neon cyan (#00f5d4); baseline remains frozen.  │
+│ Preset 4: Sandworm & Cyclops Blink (Simulated CISA / UK NCSC-Style Report)             │
+│ • Validates: Dynamic graph expansion + Entity-relevance evidence filtering.            │
+│ • Graph Result: In-memory expansion (+2 nodes: Sandworm, Cyclops Blink; +5 edges).     │
+│ • Verification Result: INSUFFICIENT_EVIDENCE (No matching evidence in baseline corpus). │
+│ • Entity Filter: Irrelevant corpus passages (e.g. Taurus sandbox evasion) are          │
+│   prevented from falsely scoring as contradictions on novel entities.                  │
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -164,7 +167,7 @@ Evaluated directly against the official Bosch Research train (`ner_train.jsonl`,
 | **Hybrid Contextual ML NER** | **0.4498** | **0.4300** | **0.4396** | Contextual sliding-window ML + Gazetteer + Aliases |
 | **Relative Performance Delta** | **+27.1%** | **+29.9%** | **+28.5%** | Demonstrates machine learning generalization gain on noisy real-world CTI |
 
-*This is the primary real-world baseline. Real-world CTI reports contain unstructured syntactic structures, novel naming variations, and complex domain jargon that make unassisted dictionary lookups insufficient.*
+*This is the primary real-world benchmark. Performance on raw, unconstrained CTI text remains modest at F1 = 0.4396, reflecting the substantial difficulty of real-world threat reports (inconsistent terminology, complex nested clauses, and novel out-of-vocabulary threat actor handles). While the hybrid model demonstrates a clear +28.5% relative gain over dictionary lookups, real-text CTI NER remains an open research challenge.*
 
 ### 6.2 Controlled Pattern Extraction Test (Synthetic 50 Sentences)
 * **Dataset**: A 50-sentence synthetic challenge benchmark (`data/benchmark/gold_standard_annotations.json`) designed to evaluate rule precision under ideal canonical entity representation.
@@ -180,7 +183,7 @@ Evaluated directly against the official Bosch Research train (`ner_train.jsonl`,
 ### 6.4 Unit Test Suite (100% Passing)
 The entire test suite covers all pipeline stages (evaluated live via `python run_tests.py`):
 ```
-Ran 58 tests in 44.677s
+Ran 59 tests in 91.793s
 OK
 ```
 *Note: Running `python run_tests.py` requires internet access on first run so the Hugging Face cross-encoder model weights (`cross-encoder/nli-deberta-v3-base`) can initialize and verify.*
@@ -265,11 +268,13 @@ To ensure scientific honesty and transparency, we document several known limitat
 
 1. **Origin of the 1,400-Node Baseline Graph**:
    The baseline Knowledge Graph (`data/cti_knowledge_graph_trusted.json`) incorporates the broader **MITRE ATT&CK enterprise ontology** (1,726 canonical entities: actors, malware, tools, techniques) alongside CTI extractions to support multi-hop graph retrieval. A localized extraction run exclusively over the 30 curated demonstration reports yields a 209-node subnetwork.
-2. **Automated Rule-Filtering vs. Human Verification**:
-   The 374 assertions in the baseline Knowledge Graph were extracted using automated syntactic pattern rules, clause-aware triggers, and entity-linking validation filters. In `data/assertions.jsonl`, each assertion explicitly stores `human_verified: false` and `verification_status: "unverified"`. The field `trust_level: "trusted"` is an internal engineering tag indicating that the triple passed the automated extraction rules and schema constraints for inclusion into the baseline graph, rather than verified ground truth from human manual review. The assertions have not undergone line-by-line manual human verification.
-3. **Polarity of Baseline Assertions & Negation Handling**:
+2. **Automated Rule-Filtering & Unverified Baseline Assertions**:
+   The 374 assertions in the baseline Knowledge Graph were extracted using automated syntactic pattern rules, clause-aware triggers, and entity-linking validation filters. In `data/assertions.jsonl`, each assertion explicitly stores `trust_level: "unverified"`, `human_verified: false`, and `verification_status: "unverified"`. None of the 374 assertions have undergone line-by-line manual verification by a human intelligence analyst.
+3. **Unmeasured Relationship Precision on Real-World Corpus**:
+   While Named Entity Recognition was empirically benchmarked against the official AnnoCTR dataset (achieving a modest F1 of 0.4396 on real-world noisy text), **relationship extraction precision on the unconstrained real-world corpus has never been empirically measured**. The AnnoCTR dataset provides ground-truth annotations exclusively for named entities, tactics, and techniques, not for relationship triples. While the clause-aware extractor rules (`USES`, `TARGETS`, `EXPLOITS`, `USES_TECHNIQUE`) pass all synthetic unit tests and regression checks, their precision and recall across the full 104-report corpus remain unbenchmarked against an annotated gold-standard relation corpus.
+4. **Polarity of Baseline Assertions & Negation Handling**:
    All 374 historical assertions stored in the static baseline graph are positive relations (`polarity="positive"`). Syntactic negation handling (`polarity="negative"`) was implemented and validated for **live dynamic ingestion of counter-evidence** (e.g., post-takedown reports in Preset 2). Historical negative assertions were not pre-extracted across the entire static baseline.
-4. **Graph Retrieval Scope**:
+5. **Graph Retrieval Scope**:
    Graph retrieval is implemented as entity-linked assertion lookup and adjacent neighborhood traversal. It retrieves evidence-grounded triples connected to extracted query entities; it does not perform unconstrained multi-hop inductive reasoning over arbitrary unindexed graph paths.
 
 ---
