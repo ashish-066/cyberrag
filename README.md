@@ -85,10 +85,13 @@ The integrated baseline system operates over the following verified corpus metri
 | :--- | :--- | :--- |
 | **Baseline Graph Nodes** | **1,400** | Canonical threat actors, malware families, tools, CVEs, techniques, and sectors (combining MITRE ATT&CK ontology with extracted entities). |
 | **Baseline Graph Edges** | **329** | Consolidated typed relational edges carrying multi-source provenance metadata. |
-| **Baseline Assertions** | **374** | Discrete sentence-grounded relationship assertions with publication dates and sources. The label "trusted" denotes that these assertions passed automated syntactic and clause-aware validation filters. |
+| **Baseline Assertions** | **374** | Discrete sentence-grounded relationship assertions with publication dates and sources. |
 | **Corpus Text Segments** | **5,991** | Paragraph- and sentence-level text chunks indexed across 2,698 paragraphs for dense and BM25 retrieval. |
 | **MITRE ATT&CK Registry** | **1,726** | Canonical definitions ingested from STIX 2.1 Enterprise bundle (178 Actors, 747 Malware, 95 Tools, 706 Techniques). |
 | **Precomputed Embeddings** | **9.2 MB** | 384-dim dense embeddings (`data/segment_embeddings_minilm.npy`) enabling instant cold starts. |
+
+> **Note on Assertion Metadata (`trust_level` vs `verification_status`)**:  
+> In `data/assertions.jsonl`, each assertion record explicitly carries `"trust_level": "trusted"`, `"human_verified": false`, and `"verification_status": "unverified"`. The field `trust_level: "trusted"` is an internal pipeline label denoting that the relation passed automated clause-aware syntactic rules and entity-linking validation filters for inclusion into the baseline graph. It does not indicate manual line-by-line verification by a human analyst.
 
 ---
 
@@ -150,9 +153,9 @@ The platform includes four pre-configured operational scenarios validating disti
 
 ## 6. Evaluation Framework & Benchmark Results
 
-To maintain scientific integrity, evaluation metrics are segregated by benchmark protocol rather than conflated into a single headline number:
+To maintain scientific integrity, evaluation metrics are segregated by benchmark protocol rather than conflated:
 
-### 6.1 Real-World Empirical Benchmark (AnnoCTR Corpus)
+### 6.1 Primary Real-World Empirical Benchmark (AnnoCTR Corpus)
 Evaluated directly against the official Bosch Research train (`ner_train.jsonl`, 7,570 sentences) and test (`ner_test.jsonl`, 3,059 sentences) splits with strictly **0% document overlap and zero leakage**:
 
 | Model Architecture | Precision | Recall | F1 Score | Evaluation Protocol |
@@ -161,27 +164,26 @@ Evaluated directly against the official Bosch Research train (`ner_train.jsonl`,
 | **Hybrid Contextual ML NER** | **0.4498** | **0.4300** | **0.4396** | Contextual sliding-window ML + Gazetteer + Aliases |
 | **Relative Performance Delta** | **+27.1%** | **+29.9%** | **+28.5%** | Demonstrates machine learning generalization gain on noisy real-world CTI |
 
-### 6.2 Synthetic Controlled Challenge Benchmark (Isolated)
-* **Dataset**: 50-sentence curated challenge benchmark (`data/benchmark/gold_standard_annotations.json`) with high density of canonical cybersecurity entities and relational triggers.
+*This is the primary real-world baseline. Real-world CTI reports contain unstructured syntactic structures, novel naming variations, and complex domain jargon that make unassisted dictionary lookups insufficient.*
+
+### 6.2 Controlled Pattern Extraction Test (Synthetic 50 Sentences)
+* **Dataset**: A 50-sentence synthetic challenge benchmark (`data/benchmark/gold_standard_annotations.json`) designed to evaluate rule precision under ideal canonical entity representation.
 * **Protocol**: Report-Level GroupKFold Cross-Validation (Leave-One-Report-Out).
 * **Results**: Precision = **0.9850**, Recall = **0.9770**, Overall F1 = **0.9809**.
-* **Scope**: Designed specifically as a controlled test of pattern extraction rules under ideal entity representation; not representative of unconstrained open-domain web text.
+* **Scope Note**: This score measures rule engine coverage under controlled conditions; it should not be conflated with the real-world AnnoCTR benchmark above.
 
-### 6.3 Developer Test Paragraphs Evaluation (Zero-Shot Generalization)
+### 6.3 Developer Test Paragraphs (Generalization Check)
 * **Dataset**: 4 short developer-written test paragraphs (`data/unseen_reports/unseen_cti_reports.json`) containing 49 entity mentions and novel threat actors/malware (e.g., *Volt Typhoon*, *AcidRain*).
 * **Results**: Precision = **0.9388**, Recall = **0.9020**, Overall F1 = **0.9200**.
 * **Provenance Verification**: **100.0%** metadata compliance (zero missing report IDs, timestamps, or sentence references).
 
 ### 6.4 Unit Test Suite (100% Passing)
-The entire test suite covers all pipeline stages:
+The entire test suite covers all pipeline stages (evaluated live via `python run_tests.py`):
 ```
-Ran 58 tests in 69.302s
+Ran 58 tests in 44.677s
 OK
 ```
-Execute the full test suite locally:
-```bash
-python run_tests.py
-```
+*Note: Running `python run_tests.py` requires internet access on first run so the Hugging Face cross-encoder model weights (`cross-encoder/nli-deberta-v3-base`) can initialize and verify.*
 
 ---
 
@@ -190,6 +192,7 @@ python run_tests.py
 ### Prerequisites
 * Python 3.10+ (tested on Python 3.10, 3.11)
 * Git
+* Internet connection (for initial Hugging Face model downloads)
 
 ### Local Setup
 ```bash
@@ -262,8 +265,8 @@ To ensure scientific honesty and transparency, we document several known limitat
 
 1. **Origin of the 1,400-Node Baseline Graph**:
    The baseline Knowledge Graph (`data/cti_knowledge_graph_trusted.json`) incorporates the broader **MITRE ATT&CK enterprise ontology** (1,726 canonical entities: actors, malware, tools, techniques) alongside CTI extractions to support multi-hop graph retrieval. A localized extraction run exclusively over the 30 curated demonstration reports yields a 209-node subnetwork.
-2. **Automated Rule-Filtering vs. Exhaustive Human Audit**:
-   The 374 assertions in the baseline graph are labeled as "trusted" because they satisfied automated syntactic, clause-aware, and entity-linking validation rules. Exhaustive human auditing was performed on a stratified sample of **100 relations** (`outputs/reports/relation_sample_100_audit.json`), verifying 100/100 verbatim evidence sentence matches; the remaining 274 assertions have not undergone individual human reading.
+2. **Automated Rule-Filtering vs. Human Verification**:
+   The 374 assertions in the baseline Knowledge Graph were extracted using automated syntactic pattern rules, clause-aware triggers, and entity-linking validation filters. In `data/assertions.jsonl`, each assertion explicitly stores `human_verified: false` and `verification_status: "unverified"`. The field `trust_level: "trusted"` is an internal engineering tag indicating that the triple passed the automated extraction rules and schema constraints for inclusion into the baseline graph, rather than verified ground truth from human manual review. The assertions have not undergone line-by-line manual human verification.
 3. **Polarity of Baseline Assertions & Negation Handling**:
    All 374 historical assertions stored in the static baseline graph are positive relations (`polarity="positive"`). Syntactic negation handling (`polarity="negative"`) was implemented and validated for **live dynamic ingestion of counter-evidence** (e.g., post-takedown reports in Preset 2). Historical negative assertions were not pre-extracted across the entire static baseline.
 4. **Graph Retrieval Scope**:
@@ -273,7 +276,7 @@ To ensure scientific honesty and transparency, we document several known limitat
 
 ## 11. Citation & Acknowledgments
 
-* **AnnoCTR Corpus**: Bosch Research, *AnnoCTR: A Dataset for Cyber Threat Intelligence Named Entity Recognition and Normalization* (LREC-COLING 2024). Portions of this dataset are used under the **CC BY-SA 4.0** license. See [NOTICE.md](NOTICE.md) for full attribution.
+* **AnnoCTR Corpus**: Bosch Research, *AnnoCTR: A Dataset for Detecting and Linking Entities, Tactics, and Techniques in Cyber Threat Reports* (LREC-COLING 2024). Portions of this dataset are used under the **CC BY-SA 4.0** license. See [NOTICE.md](NOTICE.md) for full attribution.
 * **MITRE ATT&CK**: The MITRE Corporation Enterprise ATT&CK Matrix (STIX 2.1).
 * **Sentence Transformers**: `sentence-transformers/all-MiniLM-L6-v2`.
 * **NLI Cross-Encoder**: `cross-encoder/nli-deberta-v3-base`.

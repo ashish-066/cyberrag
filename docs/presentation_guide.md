@@ -119,4 +119,4 @@ When presenting evaluation results, distinguish between evaluation settings:
 3. **Unseen CTI Generalization**:
    * Evaluated on 4 novel threat reports: **F1 = 0.9200** with **100% provenance metadata compliance**.
 4. **Unit Test Suite**:
-   * **58/58 unit tests passing** across 13 test suites in ~69 seconds (`python run_tests.py`).
+   * **58/58 unit tests passing** across 13 test suites in ~45 seconds (`python run_tests.py`).

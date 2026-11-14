@@ -9,7 +9,7 @@ This project incorporates data, frameworks, and datasets from third-party source
 Portions of the entity annotations and token sequences used for benchmark evaluation are derived from the **AnnoCTR** corpus created by Bosch Research.
 
 * **Citation**:  
-  *AnnoCTR: A Dataset for Cyber Threat Intelligence Named Entity Recognition and Normalization*,  
+  *AnnoCTR: A Dataset for Detecting and Linking Entities, Tactics, and Techniques in Cyber Threat Reports*,  
   Proceedings of the 2024 Joint International Conference on Computational Linguistics, Language Resources and Evaluation (LREC-COLING 2024).
 * **License**: Creative Commons Attribution-ShareAlike 4.0 International (**CC BY-SA 4.0**)  
   [https://creativecommons.org/licenses/by-sa/4.0/](https://creativecommons.org/licenses/by-sa/4.0/)
