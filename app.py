@@ -163,6 +163,9 @@ def main():
     c3.metric("Graph Nodes", "1,400")
     c4.metric("Graph Edges", "329")
     st.sidebar.caption("NLI Verifier: `cross-encoder/nli-deberta-v3-base`")
+    if st.sidebar.button("🔄 Reload Pipeline & Clear Cache", help="Clear cached in-memory ML engines and reload pipeline"):
+        st.cache_resource.clear()
+        st.rerun()
 
     st.sidebar.markdown("---")
     st.sidebar.subheader("📥 Report Ingestion")

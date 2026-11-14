@@ -116,6 +116,27 @@ class CTIEvidenceVerifier:
             scores[lbl] = val
         return scores
 
+    @staticmethod
+    def claim_to_natural_sentence(claim: str) -> str:
+        """Convert uppercase CTI relation predicates into natural English sentences for NLI.
+
+        Examples:
+        - "Sandworm USES Cyclops Blink." -> "Sandworm uses Cyclops Blink."
+        - "Sandworm TARGETS Ukraine." -> "Sandworm targets Ukraine."
+        - "Volt Typhoon USES Chisel." -> "Volt Typhoon uses Chisel."
+        - "Cobalt Strike EXPLOITS CVE-2021-44228." -> "Cobalt Strike exploits CVE-2021-44228."
+        - "Actor USES_TECHNIQUE T1059." -> "Actor uses technique T1059."
+        """
+        import re
+        c = str(claim or "").strip()
+        c = re.sub(r"\s+USES_TECHNIQUE\s+", " uses technique ", c)
+        c = re.sub(r"\s+USES\s+", " uses ", c)
+        c = re.sub(r"\s+TARGETS\s+", " targets ", c)
+        c = re.sub(r"\s+EXPLOITS\s+", " exploits ", c)
+        if c and not c.endswith("."):
+            c += "."
+        return c
+
     def classify_pair(self, evidence: str, claim: str) -> NLIPrediction:
         """Classify a single (evidence, claim) pair using dual-sequence encoding.
 
@@ -139,8 +160,11 @@ class CTIEvidenceVerifier:
                 claim=cl_clean,
             )
 
+        # Convert CTI predicates into natural English hypothesis for optimal transformer alignment
+        cl_hypothesis = self.claim_to_natural_sentence(cl_clean)
+
         # Native dual-sequence tokenization: text = Premise, text_pair = Hypothesis
-        raw = self.verifier({"text": ev_clean, "text_pair": cl_clean})
+        raw = self.verifier({"text": ev_clean, "text_pair": cl_hypothesis})
         scores = self._normalize_pipeline_output(raw)
 
         p_ent = scores.get("entailment", 0.0)
@@ -166,7 +190,13 @@ class CTIEvidenceVerifier:
         if not pairs:
             return []
 
-        inputs = [{"text": str(e).strip(), "text_pair": str(c).strip()} for e, c in pairs]
+        inputs = [
+            {
+                "text": str(e).strip(),
+                "text_pair": self.claim_to_natural_sentence(str(c).strip()),
+            }
+            for e, c in pairs
+        ]
         raw_outputs = self.verifier(inputs, batch_size=batch_size)
 
         predictions: List[NLIPrediction] = []

@@ -169,9 +169,8 @@ class GraphRAGPipeline:
         ).lower()
 
         for t in terms:
+            # Strictly require whole-word boundary matching to prevent substring leakage
             if re.search(r"\b" + re.escape(t) + r"\b", text):
-                return True
-            if len(t) >= 4 and t in text:
                 return True
 
         return False
