@@ -30,37 +30,37 @@ CyberRAG operates as a multi-stage, provenance-preserving pipeline:
 ```mermaid
 flowchart TD
     subgraph Ingestion ["1. Ingestion & Preprocessing"]
-        A[Raw CTI Reports / PDFs / TXT] --> B[Refanging: hxxp, [.], [:]]
-        B --> C[Sentence & Paragraph Segmentation with Provenance IDs]
+        A["Raw CTI Reports / PDFs / TXT"] --> B["Refanging: hxxp, [.], [:]"]
+        B --> C["Sentence & Paragraph Segmentation with Provenance IDs"]
     end
 
     subgraph NLP ["2. Cyber NLP & Entity Extraction"]
-        C --> D[Gazetteer & Contextual ML NER]
-        D --> E[MITRE ATT&CK Registry Linking: 1,726 Canonical Entities]
-        E --> F[Clause-Aware Semantic Relation Extractor v2]
-        F -->|Vendor & Spatial Suppression| G[Negative & Positive Assertions]
+        C --> D["Gazetteer & Contextual ML NER"]
+        D --> E["MITRE ATT&CK Registry Linking: 1,726 Canonical Entities"]
+        E --> F["Clause-Aware Semantic Relation Extractor v2"]
+        F -->|Vendor & Spatial Suppression| G["Negative & Positive Assertions"]
     end
 
     subgraph KG ["3. Knowledge Graph Engine"]
-        G --> H[(Baseline Trusted KG: 1,400 Nodes, 329 Edges)]
-        H --> I[Dynamic In-Memory Graph Expansion for New Uploads]
+        G --> H[("Baseline Trusted KG: 1,400 Nodes, 329 Edges")]
+        H --> I["Dynamic In-Memory Graph Expansion for New Uploads"]
     end
 
     subgraph Retrieval ["4. Hybrid Graph-Augmented Retrieval"]
-        J[Analyst Hypothesis / Query] --> K1[Dense Retrieval: all-MiniLM-L6-v2]
-        J --> K2[Sparse Keyword Retrieval: BM25Okapi]
-        J --> K3[Entity-Linked Graph Neighborhood Traversal]
-        K1 & K2 & K3 --> L[Reciprocal Rank Fusion & Duplicate Detection]
+        J["Analyst Hypothesis / Query"] --> K1["Dense Retrieval: all-MiniLM-L6-v2"]
+        J --> K2["Sparse Keyword Retrieval: BM25Okapi"]
+        J --> K3["Entity-Linked Graph Neighborhood Traversal"]
+        K1 & K2 & K3 --> L["Reciprocal Rank Fusion & Duplicate Detection"]
     end
 
     subgraph Verification ["5. Verification & Context Resolution"]
-        L --> M[Cross-Encoder NLI Verifier: DeBERTa-v3]
-        M --> N[Claim Aggregator: Corroboration & Duplicate Suppression]
-        N --> O[Context Resolver: Temporal / Campaign / Attribution Logic]
+        L --> M["Cross-Encoder NLI Verifier: DeBERTa-v3"]
+        M --> N["Claim Aggregator: Corroboration & Duplicate Suppression"]
+        N --> O["Context Resolver: Temporal / Campaign / Attribution Logic"]
     end
 
     subgraph Interface ["6. Analyst UI"]
-        I & O --> P[Interactive Streamlit Dashboard with Real-Time PyVis Graph]
+        I & O --> P["Interactive Streamlit Dashboard with Real-Time PyVis Graph"]
     end
 ```
 
@@ -267,7 +267,7 @@ To deploy this repository on [Streamlit Community Cloud](https://share.streamlit
 To ensure scientific honesty and transparency, we document several known limitations of the current implementation:
 
 1. **Origin & Sparsity of the 1,400-Node Baseline Graph**:
-   The baseline Knowledge Graph (`data/cti_knowledge_graph_trusted.json`) contains **1,400 consolidated entity nodes extracted across 62 reports** from 5 vendors (2018–2022), with **415 nodes linked to canonical MITRE ATT&CK IDs**. The nodes are connected by **329 unique relation edges** derived from 374 assertions. However, the graph is sparse: only 277 of the 1,400 nodes have an edge, while 1,123 nodes (80.2%) remain isolated because most entity mentions in raw text do not appear in supported syntactic relation clauses. Running `run_pipeline.py` over the 30 curated demonstration reports alone yields a localized 209-node subnetwork.
+   The baseline Knowledge Graph (`data/cti_knowledge_graph_trusted.json`) contains **1,400 consolidated entity nodes extracted across the full 104-report corpus** (spanning 2016–2022), with **415 nodes linked to canonical MITRE ATT&CK IDs**. The nodes are connected by **329 unique relation edges** derived from the 374 assertions extracted across 62 of those reports (2018–2022). However, the graph is sparse: only 277 of the 1,400 nodes have an edge, while 1,123 nodes (80.2%) remain isolated because most entity mentions in raw text do not appear in supported syntactic relation clauses. Running `run_pipeline.py` over the 30 curated demonstration reports alone yields a localized 209-node subnetwork.
 2. **Assertion Predicates & Missing EXPLOITS Instances**:
    The 374 assertions comprise only three relation types: `TARGETS` (184), `USES` (99), and `USES_TECHNIQUE` (91). While syntactic rules for `EXPLOITS` are implemented in the extractor, the baseline corpus contains zero extracted `EXPLOITS` instances, and only 9 CVE entity nodes exist in the baseline graph.
 3. **Automated Rule-Filtering & Unverified Baseline Assertions**:
