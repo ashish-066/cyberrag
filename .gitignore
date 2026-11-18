@@ -40,6 +40,9 @@ temp_person3_unpacked/
 *.log
 *.bak
 *.bak.*
+*.backup
+*_backup.py
+*_backup.*
 
 # OS generated files
 .DS_Store
