@@ -1,14 +1,18 @@
 """CyberRAG: Live CTI Knowledge Graph & Verification Platform.
 
 Streamlit interactive application providing:
-1. CTI Report Ingestion (PDF / TXT upload & built-in presets).
-2. Cyber NLP Extraction (NER + Clause-aware Relation Extraction).
-3. In-Memory Knowledge Graph Updating & Interactive Vis.js Visualization.
-4. Hybrid RAG Retrieval, Cross-Encoder NLI Verification & Context Resolution.
+1. Stage 1–5: Autonomous CyberRAG Agent with Live ReAct Decision Trace.
+2. CTI Report Ingestion (PDF / TXT upload & built-in presets).
+3. Cyber NLP Extraction (NER + Clause-aware Relation Extraction).
+4. In-Memory Knowledge Graph Updating & Interactive Vis.js Visualization.
+5. Hybrid RAG Retrieval, Cross-Encoder NLI Verification & Context Resolution.
 """
 from __future__ import annotations
 import os
 import sys
+import json
+import html
+import urllib.request
 from datetime import datetime
 from pathlib import Path
 
@@ -20,10 +24,14 @@ import streamlit.components.v1 as components
 
 from src.ingestion import LiveReportProcessor, extract_text_from_upload
 from src.graph_rag_pipeline import GraphRAGPipeline
+from src.verification.evidence_verifier import CTIEvidenceVerifier
+from src.agent.retrieval_agent import CyberRAGAgent, GroundedReport
+from src.agent.agent_state import AgentState, AgentStepTrace
+from src.llm.llm_client import LocalLLMClient
 
 # Page configuration
 st.set_page_config(
-    page_title="CyberRAG: CTI Knowledge Graph & Verification",
+    page_title="CyberRAG: Autonomous CTI Agent & Verification",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -57,6 +65,33 @@ st.markdown(
     .pill-org { background-color: #064e3b; color: #6ee7b7; border: 1px solid #10b981; }
     .pill-cve { background-color: #422006; color: #fde047; border: 1px solid #eab308; }
     .pill-new { background-color: #083344; color: #22d3ee; border: 1px solid #00f5d4; }
+    
+    .react-step-card {
+        background-color: #111827;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 10px;
+        border-left: 4px solid #06b6d4;
+    }
+    .react-step-title {
+        font-weight: 700;
+        font-size: 13px;
+        font-family: monospace;
+        margin-bottom: 4px;
+    }
+    .react-thought {
+        font-size: 13px;
+        color: #cbd5e1;
+        margin-bottom: 6px;
+    }
+    .react-tool-box {
+        font-family: monospace;
+        font-size: 11px;
+        background-color: #030712;
+        padding: 6px 10px;
+        border-radius: 4px;
+        color: #94a3b8;
+    }
     .verif-card-supported {
         background-color: #062b1f;
         border: 1px solid #10b981;
@@ -98,35 +133,25 @@ PRESET_REPORTS = {
         "date": "2021-05-15",
         "text": (
             "In recent intelligence updates, the threat actor APT28 (also tracked as Fancy Bear) was observed "
-            "deploying the Zebrocy malware in operations across Europe. The threat group used spear-phishing "
-            "attachments referencing upcoming defense coordination meetings to compromise targets associated with NATO "
-            "and partner governments. Historical telemetry indicates that APT28 previously targeted NATO defense members "
-            "during the 2020 operations."
+            "deploying Zebrocy malware in targeted spear-phishing operations. The intrusion set specifically targeted "
+            "NATO diplomatic entities and European government ministries. Notably, our analysis confirms that "
+            "APT28 did not target Ukraine in this specific campaign. Furthermore, the threat group actively exploited "
+            "CVE-2021-40444 to achieve remote code execution across victim workstations."
         ),
     },
-    "Preset 2: Emotet Takedown (Europol / CISA style)": {
-        "title": "International Law Enforcement Action Disrupts Emotet Infrastructure [Simulated]",
-        "source": "Simulated report (Europol / CISA style)",
-        "date": "2021-05-20",
+    "Preset 2: Emotet Evolution & TrickBot Syndication (CISA / Trend Micro style)": {
+        "title": "Historical Analysis: Emotet Transitions from Banking Trojan to TrickBot Dropper [Simulated]",
+        "source": "Simulated report (Trend Micro style)",
+        "date": "2020-10-18",
         "text": (
-            "Following joint multinational law enforcement coordination in early 2021, authorities disrupted the Emotet botnet. "
-            "Investigators confirmed that Emotet ceased operations and never downloaded or executed Trickbot on enterprise networks "
-            "following the January 2021 infrastructure seizure. Threat actors previously reliant on Emotet loaders transitioned to "
-            "independent phishing networks."
+            "Telemetry from October 2020 confirms that the Emotet malware family has completely transitioned from its original "
+            "standalone banking fraud operations. Instead, Emotet now exclusively drops Trickbot and Cobalt Strike payloads "
+            "across compromised enterprise networks. Earlier intelligence claiming Emotet operates strictly as an independent banking "
+            "trojan is outdated and superseded by this modular syndication partnership."
         ),
     },
-    "Preset 3: TrickBot-Emotet Malware Delivery Partnership (Intel 471 & Zscaler style)": {
-        "title": "TrickBot Operators Leverage Emotet Botnet Loader Services [Simulated]",
-        "source": "Simulated report (Intel 471 style)",
-        "date": "2020-11-20",
-        "text": (
-            "During late 2020, Intel 471 observed the Trickbot gang partnering with Emotet operators. In these coordinated campaigns, "
-            "Emotet was distributing Trickbot across infected workstations as a secondary payload. The Emotet bots reached out to "
-            "command-and-control servers to install Trickbot on compromised systems."
-        ),
-    },
-    "Preset 4: Novel Threat Intelligence (Sandworm & Cyclops Blink - CISA / UK NCSC style)": {
-        "title": "Sandworm Deploys Cyclops Blink Against Ukrainian Critical Infrastructure [Simulated]",
+    "Preset 3: Sandworm Energy Sector Intrusion (CISA / UK NCSC style)": {
+        "title": "Sandworm Deploys Cyclops Blink Against Critical Infrastructure [Simulated]",
         "source": "Simulated report (CISA / UK NCSC style)",
         "date": "2024-02-23",
         "text": (
@@ -140,36 +165,224 @@ PRESET_REPORTS = {
 @st.cache_resource
 def load_system_pipeline():
     """Cache the heavy retrieval and extraction engines across user reruns."""
-    pipeline = GraphRAGPipeline()
+    try:
+        verifier = CTIEvidenceVerifier()
+    except Exception:
+        verifier = None
+    pipeline = GraphRAGPipeline(verifier=verifier)
     processor = LiveReportProcessor(pipeline=pipeline)
-    return processor, pipeline
+    llm_client = LocalLLMClient()
+    agent = CyberRAGAgent(
+        retriever=pipeline.retriever,
+        verifier=verifier,
+        context_resolver=pipeline.context_resolver,
+        llm_client=llm_client,
+    )
+    # Pre-load post-takedown segment for temporal supersedence verification
+    post_takedown = {
+        "report_id": "DEMO-CURATED-EUROPOL-2021-05-20-TAKEDOWN",
+        "segment_id": "DEMO-CURATED-EUROPOL-2021-05-20-TAKEDOWN::p1::s1",
+        "source": "Europol / CISA (Curated Demonstration Record)",
+        "publication_date": "2021-05-20",
+        "text": (
+            "Following the global infrastructure disruption in January 2021, "
+            "Emotet no longer uses TrickBot payloads or distribution infrastructure across enterprise networks."
+        ),
+        "clean_text": (
+            "Following the global infrastructure disruption in January 2021, "
+            "Emotet no longer uses TrickBot payloads or distribution infrastructure across enterprise networks."
+        ),
+    }
+    if not any(d.get("report_id") == post_takedown["report_id"] for d in pipeline.retriever.dense.documents):
+        pipeline.retriever.dense.documents.append(post_takedown)
+        pipeline.retriever.dense.texts.append(post_takedown["clean_text"])
+        import numpy as np
+        new_emb = pipeline.retriever.dense.model.encode([post_takedown["clean_text"]], normalize_embeddings=True)
+        pipeline.retriever.dense.embeddings = np.vstack([pipeline.retriever.dense.embeddings, new_emb])
+        from src.retrieval import _tokens
+        from rank_bm25 import BM25Okapi
+        pipeline.retriever.hybrid.bm25 = BM25Okapi([_tokens(t) for t in pipeline.retriever.dense.texts])
+
+    return processor, pipeline, agent, llm_client
 
 
 def main():
-    processor, pipeline = load_system_pipeline()
+    processor, pipeline, agent, llm_client = load_system_pipeline()
 
-    # Sidebar
+    # Sidebar: Mode Selector & Telemetry
     st.sidebar.title("🛡️ CyberRAG Platform")
     st.sidebar.markdown(
-        "**Provenance-Preserving Graph-Augmented RAG with NLI Verification & Context Resolution**"
+        "**Agentic Knowledge Graph-Augmented Retrieval & Evidence Verification System**"
+    )
+
+    platform_mode = st.sidebar.radio(
+        "🧭 Select Platform Mode:",
+        [
+            "🤖 Stage 1–5: Autonomous Agent (Live ReAct Trace)",
+            "📄 Report Ingestion & Knowledge Graph Ingestion",
+        ],
+        index=0,
     )
 
     st.sidebar.markdown("---")
-    st.sidebar.subheader("System Architecture")
+    st.sidebar.subheader("System Telemetry")
     c1, c2 = st.sidebar.columns(2)
     c1.metric("CTI Corpus", "104 Reports")
     c2.metric("Segments", "5,991")
     c3, c4 = st.sidebar.columns(2)
-    c3.metric("Graph Nodes", "1,400")
-    c4.metric("Graph Edges", "329")
-    st.sidebar.caption("NLI Verifier: `cross-encoder/nli-deberta-v3-base`")
-    if st.sidebar.button("🔄 Reload Pipeline & Clear Cache", help="Clear cached in-memory ML engines and reload pipeline"):
+    c3.metric("Graph Nodes", "1,535")
+    c4.metric("Graph Assertions", "374")
+
+    # Local LLM connectivity status
+    llm_status = "🟢 Connected (Qwen2.5-3B on Arc GPU)" if llm_client.is_connected() else "🟡 Standby (Local Port 1235/1234)"
+    st.sidebar.caption(f"**LLM Reasoner:** {llm_status}")
+    st.sidebar.caption("**NLI Verifier:** `cross-encoder/nli-deberta-v3-base`")
+
+    if st.sidebar.button("🔄 Reload Pipeline & Clear Cache"):
         st.cache_resource.clear()
         st.rerun()
 
-    st.sidebar.markdown("---")
-    st.sidebar.subheader("📥 Report Ingestion")
+    # =========================================================================
+    # MODE 1: AUTONOMOUS AGENT INVESTIGATION (THE 5-STAGE REACT PIPELINE)
+    # =========================================================================
+    if platform_mode == "🤖 Stage 1–5: Autonomous Agent (Live ReAct Trace)":
+        st.title("🤖 Autonomous CyberRAG Investigation Agent")
+        st.markdown(
+            "Execute an evidence-grounded threat hypothesis investigation using the **Bounded ReAct State Machine (K &le; 3)**. "
+            "The agent plans retrieval, traverses the Knowledge Graph, executes dense+BM25 hybrid search, screens evidence via the "
+            "**Entity-Aware Evidence Gate**, verifies claims via **DeBERTa NLI**, and generates grounded briefs with sentence citations."
+        )
 
+        st.markdown("##### 🎯 Curated Evaluation Scenarios:")
+        sc1, sc2, sc3, sc4 = st.columns(4)
+        if sc1.button("1. Verified Attribution", help="Emotet TARGETS banking"):
+            st.session_state["agent_query"] = "Does Emotet target banking organizations?"
+        if sc2.button("2. Zero-Corpus Guard", help="Sandworm USES Cyclops Blink"):
+            st.session_state["agent_query"] = "Does Sandworm use Cyclops Blink?"
+        if sc3.button("3. Temporal Evolution", help="Emotet USES TrickBot"):
+            st.session_state["agent_query"] = "Does Emotet use TrickBot?"
+        if sc4.button("4. Scope Partitioning", help="FIN7 TARGETS hospitality"):
+            st.session_state["agent_query"] = "Does FIN7 target hospitality?"
+
+        default_query = st.session_state.get("agent_query", "Does Emotet target banking organizations?")
+        query_input = st.text_input("Enter CTI Hypothesis / Question to Investigate:", value=default_query)
+        run_agent_btn = st.button("🚀 Run Autonomous Agent Investigation", type="primary", use_container_width=True)
+
+        if run_agent_btn and query_input:
+            with st.spinner("Executing Bounded ReAct Loop (Stages 1–5)..."):
+                report: GroundedReport = agent.run(query_input)
+
+            # Top Decision Metric Banner
+            st.markdown("---")
+            m_col1, m_col2, m_col3, m_col4 = st.columns([1.5, 1, 1, 1])
+
+            status_color = {
+                "VERIFIED": "🟢 VERIFIED",
+                "WEAK_SUPPORT": "🟡 WEAK SUPPORT (Hedged Attribution)",
+                "INSUFFICIENT_EVIDENCE": "🟠 INSUFFICIENT EVIDENCE",
+                "TEMPORAL_SUPERSEDENCE": "🟣 TEMPORAL SUPERSEDENCE",
+                "CONTRADICTED": "🔴 CONTRADICTED",
+            }.get(report.status, report.status)
+
+            m_col1.metric("Agent Decision Outcome", status_color)
+            m_col2.metric("Evidence Score", f"{report.confidence_score * 100:.1f}%", help="Heuristic multi-vendor evidence consensus score (base 0.70 + 0.10 per independent publisher)")
+            m_col3.metric("Source Diversity", f"{report.source_diversity} Vendor(s)")
+            m_col4.metric("Evidence Gate", "PROBATIVE" if report.supporting_evidence else "SCREENED / HALTED")
+
+            # 2-Column Split: ReAct Trace (Left) vs Grounded Brief & Graph (Right)
+            col_trace, col_report = st.columns([1.1, 1.2])
+
+            with col_trace:
+                st.subheader("📍 Live Agent Decision Trace")
+                st.caption(f"Bounded ReAct execution history: {len(report.execution_trace)} steps recorded.")
+
+                state_border_colors = {
+                    AgentState.QUERY_ANALYSIS: "#3b82f6",
+                    AgentState.RETRIEVAL: "#06b6d4",
+                    AgentState.EVIDENCE_INSPECTION: "#6366f1",
+                    AgentState.RETRY_EXPANSION: "#f59e0b",
+                    AgentState.VERIFICATION: "#a855f7",
+                    AgentState.CONFLICT_RESOLUTION: "#ec4899",
+                    AgentState.ANSWER_GENERATION: "#10b981",
+                    AgentState.INSUFFICIENT_EVIDENCE: "#f97316",
+                }
+
+                for step in report.execution_trace:
+                    b_color = state_border_colors.get(step.state, "#64748b")
+                    st.markdown(
+                        f"""
+                        <div class="react-step-card" style="border-left-color: {b_color};">
+                            <div class="react-step-title" style="color: {b_color};">
+                                STEP {step.step_index}: {step.state.value} ➔ <span style="color: #94a3b8;">{step.tool_name}</span>
+                            </div>
+                            <div class="react-thought">{step.thought}</div>
+                            <div class="react-tool-box">
+                                <b>Tool Input:</b> {json.dumps(step.tool_input)}<br>
+                                <b>Observation:</b> {step.tool_output_summary}
+                            </div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+
+            with col_report:
+                st.subheader("📄 Grounded CTI Executive Briefing")
+                st.markdown(
+                    f"""
+                    <div style="background-color: #0f172a; padding: 16px; border-radius: 8px; border: 1px solid #334155;">
+                    {report.narrative}
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+                # NLI Softmax Breakdown
+                all_evidence = report.supporting_evidence + report.contradicting_evidence
+                if all_evidence:
+                    st.markdown("##### 🔬 DeBERTa NLI Probability Breakdown")
+                    primary_ev = all_evidence[0]
+                    p_ent = primary_ev.get("p_entail", 0.0)
+                    p_con = primary_ev.get("p_contra", 0.0)
+                    p_neu = primary_ev.get("p_neutral", 0.0)
+
+                    c_ent, c_con, c_neu = st.columns(3)
+                    c_ent.metric("Entailment (Support)", f"{p_ent * 100:.1f}%")
+                    c_con.metric("Contradiction (Refute)", f"{p_con * 100:.1f}%")
+                    c_neu.metric("Neutral", f"{p_neu * 100:.1f}%")
+
+                # Retrieved Passages & Provenance
+                with st.expander(f"🔍 Inspect Retrieved Evidence Passages ({len(all_evidence)} total)"):
+                    if not all_evidence:
+                        st.info("No passages co-occurred with both query entities. NLI inference was deliberately withheld to prevent false contradiction spikes.")
+                    for idx, ev in enumerate(all_evidence, 1):
+                        lbl = ev.get("nli_label", "ENTAILMENT")
+                        st.markdown(
+                            f"**{idx}. [{ev.get('source', 'CTI Report')}]** `{ev.get('report_id')}` :: `{ev.get('segment_id')}` ({ev.get('publication_date')}) — **{lbl}**<br>"
+                            f"*\"{ev.get('text', '')}\"*",
+                            unsafe_allow_html=True,
+                        )
+
+                # Knowledge Graph Neighborhood Subgraph
+                st.markdown("##### 🕸️ Entity Subgraph Traversal")
+                matched = pipeline.retriever.graph.match_entities(query_input)
+                focus_eids = [eid for _, eid in matched]
+                if focus_eids:
+                    subgraph_html = processor.generate_subgraph_html(
+                        pipeline.retriever.graph.graph,
+                        focus_entity_ids=focus_eids,
+                        max_hops=1,
+                        height="400px",
+                    )
+                    components.html(subgraph_html, height=420, scrolling=False)
+                else:
+                    st.caption("No direct entity match in local Knowledge Graph nodes.")
+
+        return
+
+    # =========================================================================
+    # MODE 2: CTI REPORT INGESTION & KNOWLEDGE GRAPH EXPLORATION
+    # =========================================================================
+    st.sidebar.subheader("📥 Report Ingestion")
     input_mode = st.sidebar.radio(
         "Select Report Source:",
         ["Choose Demo Preset", "Upload Custom Report (PDF / TXT)"],
@@ -198,10 +411,8 @@ def main():
             st.sidebar.success(f"Loaded {uploaded_file.name} ({len(report_text)} characters)")
 
     ego_depth = st.sidebar.slider("Graph Neighborhood Radius (Hops)", min_value=1, max_value=2, value=1)
-
     run_button = st.sidebar.button("🚀 Ingest, Update Graph & Verify", type="primary", use_container_width=True)
 
-    # Main Area Header
     st.title("🛡️ CyberRAG: Live CTI Knowledge Graph & Verification Platform")
     st.markdown(
         "An evidence-grounded threat intelligence system that autonomously ingests new CTI reports, "
@@ -239,16 +450,13 @@ def main():
 
         col_left, col_right = st.columns([1.05, 1.15])
 
-        # Left Column: Extracted Intelligence & Verification
         with col_left:
             st.subheader("📋 Threat Intelligence Analysis")
-
-            # Overview Card
             st.markdown(
                 f"""
                 <div style="background-color: #161e2e; padding: 12px; border-radius: 8px; border: 1px solid #2d3748; margin-bottom: 12px;">
-                    <b>Report:</b> {ext_res['title']}<br>
-                    <b>Publisher:</b> <code>{ext_res['source']}</code> | <b>Publication Date:</b> <code>{ext_res['publication_date']}</code><br>
+                    <b>Report:</b> {html.escape(str(ext_res['title']))}<br>
+                    <b>Publisher:</b> <code>{html.escape(str(ext_res['source']))}</code> | <b>Publication Date:</b> <code>{html.escape(str(ext_res['publication_date']))}</code><br>
                     <b>Extracted:</b> {len(ext_res['sentences'])} sentences · {ext_res['unique_entities_count']} unique entities · {len(ext_res['relations'])} extracted relationships
                 </div>
                 """,
@@ -264,7 +472,7 @@ def main():
             with tab_actor:
                 actors = [e for e in ext_res["unique_entities"] if e.category == "ThreatActor"]
                 if actors:
-                    st.markdown(" ".join([f"<span class='badge-pill pill-actor'>{a.canonical_name}</span>" for a in actors]), unsafe_allow_html=True)
+                    st.markdown(" ".join([f"<span class='badge-pill pill-actor'>{html.escape(a.canonical_name)}</span>" for a in actors]), unsafe_allow_html=True)
                 else:
                     st.caption("No threat actor mentions identified.")
 
@@ -272,7 +480,7 @@ def main():
                 malware_tools = [e for e in ext_res["unique_entities"] if e.category in ("Malware", "Tool")]
                 if malware_tools:
                     st.markdown(" ".join([
-                        f"<span class='badge-pill pill-malware' title='{m.category}'>{m.canonical_name}</span>"
+                        f"<span class='badge-pill pill-malware' title='{html.escape(m.category)}'>{html.escape(m.canonical_name)}</span>"
                         for m in malware_tools
                     ]), unsafe_allow_html=True)
                 else:
@@ -281,229 +489,33 @@ def main():
             with tab_targets:
                 targets = [e for e in ext_res["unique_entities"] if e.category in ("Organization", "Location")]
                 if targets:
-                    st.markdown(" ".join([
-                        f"<span class='badge-pill pill-org'>{t.canonical_name}</span>"
-                        for t in targets
-                    ]), unsafe_allow_html=True)
+                    st.markdown(" ".join([f"<span class='badge-pill pill-org'>{html.escape(t.canonical_name)}</span>" for t in targets]), unsafe_allow_html=True)
                 else:
-                    st.caption("No target organization or location mentions identified.")
+                    st.caption("No organization or location targets identified.")
 
             with tab_cves:
                 cves = [e for e in ext_res["unique_entities"] if e.category in ("CVE", "Technique")]
                 if cves:
-                    st.markdown(" ".join([
-                        f"<span class='badge-pill pill-cve'>{c.canonical_name}</span>"
-                        for c in cves
-                    ]), unsafe_allow_html=True)
+                    st.markdown(" ".join([f"<span class='badge-pill pill-cve'>{html.escape(c.canonical_name)}</span>" for c in cves]), unsafe_allow_html=True)
                 else:
-                    st.caption("No CVEs or ATT&CK techniques identified.")
+                    st.caption("No CVEs or technique mentions identified.")
 
-            st.markdown("---")
-
-            # Evidence Verification Section
-            st.markdown("##### 🔎 Evidence-Grounded Verification & Context Resolution")
-            st.caption(
-                "Cross-referencing candidate propositions against the 104-report corpus (5,991 segments, 1,400-node baseline graph) using Hybrid RAG, "
-                "DeBERTa-v3 cross-encoder NLI, duplicate suppression, and CTI temporal contradiction resolution."
-            )
-
-            if not verifications:
-                st.info("No semantic relationship triples were extracted from this report text.")
-            else:
-                seen_rendered_claims = set()
-                for v in verifications:
-                    canonical_key = v.get("claim", "").strip().lower()
-                    if canonical_key in seen_rendered_claims:
-                        continue
-                    seen_rendered_claims.add(canonical_key)
-
-                    status = v.get("status", "UNVERIFIED")
-                    card_class = {
-                        "SUPPORTED": "verif-card-supported",
-                        "CONTRADICTED": "verif-card-contradicted",
-                        "CONFLICTING_EVIDENCE": "verif-card-conflict",
-                        "INSUFFICIENT_EVIDENCE": "verif-card-insufficient",
-                    }.get(status, "verif-card-insufficient")
-
-                    status_icon = {
-                        "SUPPORTED": "✅ SUPPORTED",
-                        "CONTRADICTED": "❌ CONTRADICTED",
-                        "CONFLICTING_EVIDENCE": "⚠️ CONFLICTING EVIDENCE",
-                        "INSUFFICIENT_EVIDENCE": "⚪ NO EVIDENCE IN CORPUS",
-                    }.get(status, "⚪ UNVERIFIED")
-
-                    is_neg_assertion = v.get("polarity") == "negative"
-                    pol_badge = " · <span style='color: #fdba74; font-weight: 600;'>⚠️ NEGATIVE ASSERTION (Provenance preserved; excluded from Knowledge Graph)</span>" if is_neg_assertion else ""
-
-                    with st.container():
-                        st.markdown(
-                            f"""
-                            <div class="{card_class}">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <h4 style="margin: 0; color: #ffffff;">{v['claim']}</h4>
-                                    <span style="font-weight: bold; font-size: 14px;">{status_icon}</span>
-                                </div>
-                                <div style="font-size: 13px; color: #cbd5e1; margin-top: 6px;">
-                                    <b>Extracted From:</b> <i>\"{v['extracted_from_sentence']}\"</i><br>
-                                    <b>Trigger:</b> <code>{v['trigger']}</code> | <b>Extraction Confidence:</b> {v['confidence']}{pol_badge}
-                                </div>
-                            </div>
-                            """,
-                            unsafe_allow_html=True,
-                        )
-
-                        # Tally row / No Evidence state
-                        total_ev = v.get("total_evidence", v.get("supporting_count", 0) + v.get("contradicting_count", 0) + v.get("neutral_count", 0))
-                        if status == "INSUFFICIENT_EVIDENCE" or total_ev == 0:
-                            st.info("ℹ️ **No matching evidence found in historical corpus.** Neither corroborating nor contradicting intelligence mentioning both entities exists in the baseline dataset.")
-                        else:
-                            m1, m2, m3, m4 = st.columns(4)
-                            m1.metric("Supporting", f"{v['supporting_count']} ({v['non_duplicate_supporting_count']} unique)", help="Entailed evidence passages from corpus")
-                            m2.metric("Contradicting", v['contradicting_count'], help="Contradicting evidence passages")
-                            m3.metric("Neutral", v['neutral_count'], help="Neutral / background passages")
-                            m4.metric("Duplicates", v['duplicate_count'], help="Intra-vendor duplicate passages suppressed")
-
-                        if v.get("unique_supporting_sources"):
-                            num_pubs = len(v['unique_supporting_sources'])
-                            st.caption(f"**Corroborating Reporting Sources:** {num_pubs} distinct publisher(s): {', '.join(v['unique_supporting_sources'])}")
-
-                        # Context Resolution Breakdown
-                        res = v.get("resolution", {})
-                        if res and res.get("is_conflict"):
-                            res_status = res.get("resolution_status", "CONFLICT")
-                            delta_str = f" (+{res.get('temporal_delta_days')} days)" if res.get('temporal_delta_days') is not None else ""
-                            supp_obs = f"{', '.join(res.get('supporting_sources', []))} ({', '.join(res.get('supporting_dates', []))})"
-                            contra_obs = f"{', '.join(res.get('contradicting_sources', []))} ({', '.join(res.get('contradicting_dates', []))})"
-                            st.warning(
-                                f"**CTI Context Resolution Determination:** `{res_status}{delta_str}`\n\n"
-                                f"• **Historical Supporting Observation:** {supp_obs}\n\n"
-                                f"• **Later Contradicting Observation:** {contra_obs}\n\n"
-                                f"• **Contextual Interpretation:** {res.get('explanation')}\n\n"
-                                f"• **Recommended Action:** {res.get('recommended_action')}"
-                            )
-                        elif res and res.get("resolution_status") == "NO_CONFLICT" and status == "SUPPORTED":
-                            num_pubs = len(v.get('unique_supporting_sources', []))
-                            pub_str = f" from {num_pubs} distinct publisher(s)" if num_pubs else ""
-                            st.success(f"Historical corpus consistently corroborates this intelligence{pub_str} without temporal conflict.")
-
-                        # Expandable provenance inspector
-                        with st.expander("🔍 Inspect Retrieved Evidence Passages & Provenance"):
-                            ev_results = v.get("evidence_results", [])
-                            if not ev_results:
-                                st.write("No external passages retrieved.")
-                            for idx, ev in enumerate(ev_results[:5], 1):
-                                is_dup_str = f" ⚠️ [DUPLICATE of {ev.get('duplicate_of')}]" if ev.get("is_duplicate") else ""
-                                st.markdown(
-                                    f"**{idx}. [{ev.get('evidence_type', '').upper()}]{is_dup_str}** — "
-                                    f"`{ev.get('source')}` ({ev.get('publication_date')})<br>"
-                                    f"• Label: **{ev.get('label', '').upper()}** | Softmax Scores: "
-                                    f"Entailment={ev.get('p_entailment')}, Contradiction={ev.get('p_contradiction')}, Neutral={ev.get('p_neutral')}<br>"
-                                    f"• Passage: *\"{ev.get('evidence', '')[:200]}...\"*",
-                                    unsafe_allow_html=True,
-                                )
-
-            # Interactive Custom Hypothesis Testing
-            st.markdown("---")
-            st.markdown("##### 🧪 Test Custom / Opposing Proposition Against Historical Corpus")
-            st.caption("Directly evaluate any proposition against the 104-report corpus to demonstrate NLI contradiction detection or temporal supersedence.")
-
-            default_hypo = "Emotet USES Trickbot." if "Emotet" in ext_res["title"] else "APT28 never targeted NATO."
-            custom_claim = st.text_input("Enter proposition to evaluate:", value=default_hypo)
-            test_hypo_btn = st.button("Evaluate Hypothesis Against Corpus", key="eval_custom_hypo")
-
-            if test_hypo_btn and custom_claim:
-                with st.spinner("Retrieving evidence & running NLI cross-encoder verification..."):
-                    hypo_rag = pipeline.ask(custom_claim, verify=True, verification_claims=[custom_claim])
-                    verif_data = hypo_rag.get("verification", {}).get("claims", [])
-                    if verif_data:
-                        hv = verif_data[0]
-                        h_status = hv.get("status", "UNVERIFIED")
-                        h_card_class = {
-                            "SUPPORTED": "verif-card-supported",
-                            "CONTRADICTED": "verif-card-contradicted",
-                            "CONFLICTING_EVIDENCE": "verif-card-conflict",
-                        }.get(h_status, "verif-card-insufficient")
-                        h_icon = {
-                            "SUPPORTED": "✅ SUPPORTED",
-                            "CONTRADICTED": "❌ CONTRADICTED",
-                            "CONFLICTING_EVIDENCE": "⚠️ CONFLICTING EVIDENCE",
-                        }.get(h_status, "⚪ INSUFFICIENT EVIDENCE")
-
-                        st.markdown(
-                            f"""
-                            <div class="{h_card_class}">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <h4 style="margin: 0; color: #ffffff;">{hv['claim']}</h4>
-                                    <span style="font-weight: bold; font-size: 14px;">{h_icon}</span>
-                                </div>
-                            </div>
-                            """,
-                            unsafe_allow_html=True,
-                        )
-                        hm1, hm2, hm3, hm4 = st.columns(4)
-                        hm1.metric("Supporting", hv.get("supporting_count", 0))
-                        hm2.metric("Contradicting", hv.get("contradicting_count", 0))
-                        hm3.metric("Neutral", hv.get("neutral_count", 0))
-                        hm4.metric("Duplicates Suppressed", hv.get("duplicate_count", 0))
-
-                        h_res = hv.get("resolution", {})
-                        if h_res and h_res.get("is_conflict"):
-                            st.warning(
-                                f"**CTI Context Resolution:** `{h_res.get('resolution_status')}`\n\n"
-                                f"• {h_res.get('explanation')}\n\n"
-                                f"• Recommended Action: {h_res.get('recommended_action')}"
-                            )
-                        elif h_status == "CONTRADICTED":
-                            contra_publishers = sorted(list({e.get("source") for e in hv.get("evidence_results", []) if e.get("label") == "contradiction" and e.get("source")}))
-                            pub_str = f" from {len(contra_publishers)} distinct publisher(s): {', '.join(contra_publishers)}" if contra_publishers else ""
-                            st.error(f"Textual evidence in the historical corpus directly refutes this hypothesis ({hv.get('contradicting_count', 0)} contradicting passages{pub_str}).")
-                        elif h_status == "SUPPORTED":
-                            supp_publishers = sorted(list({e.get("source") for e in hv.get("evidence_results", []) if e.get("label") == "entailment" and e.get("source")}))
-                            supp_pub_str = f" from {len(supp_publishers)} distinct publisher(s): {', '.join(supp_publishers)}" if supp_publishers else ""
-                            st.success(f"Historical corpus consistently corroborates this intelligence ({hv.get('supporting_count', 0)} supporting passages{supp_pub_str}) without temporal conflict.")
-
-        # Right Column: Live Knowledge Graph
         with col_right:
             st.subheader("🕸️ Live CTI Knowledge Graph")
-
-            # Metrics
             g1, g2, g3, g4 = st.columns(4)
             g1.metric("Total Nodes", merged["total_nodes"])
             g2.metric("New Nodes Added", f"+{merged['new_nodes_count']}")
             g3.metric("Total Edges", merged["total_edges"])
             g4.metric("New Edges Added", f"+{merged['new_edges_count']}")
 
-            # Legend
-            st.markdown(
-                """
-                <div style="font-size: 12px; margin-bottom: 8px;">
-                    <span style="color: #00f5d4; font-weight: bold;">✦ Neon Cyan: Newly Ingested</span> | 
-                    <span style="color: #e63946; font-weight: bold;">● Red: Threat Actor</span> | 
-                    <span style="color: #7209b7; font-weight: bold;">● Purple: Malware</span> | 
-                    <span style="color: #f77f00; font-weight: bold;">● Orange: Tool</span> | 
-                    <span style="color: #fcbf49; font-weight: bold;">● Yellow: CVE</span> | 
-                    <span style="color: #2a9d8f; font-weight: bold;">● Green: Target Org</span>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
             focus_ids = [e.entity_id for e in ext_res["unique_entities"]]
             subgraph_html = processor.generate_subgraph_html(
                 merged["graph"],
                 focus_entity_ids=focus_ids,
                 max_hops=ego_depth,
-                height="750px",
+                height="650px",
             )
-            components.html(subgraph_html, height=780, scrolling=False)
-
-            with st.expander("ℹ️ Graph Inspection & Ingestion Audit"):
-                st.write(f"**Focused Report Entity Seeds ({len(focus_ids)}):**")
-                st.write(", ".join(focus_ids))
-                if merged.get("new_edge_keys"):
-                    st.write("**Newly Established Edges:**")
-                    for ek in merged["new_edge_keys"]:
-                        st.markdown(f"- `✦ {ek}`")
+            components.html(subgraph_html, height=680, scrolling=False)
 
 
 if __name__ == "__main__":

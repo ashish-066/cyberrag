@@ -1,0 +1,25 @@
+{
+  "files": {
+    "assertions.jsonl": {
+      "bytes": 561510,
+      "sha256": "53291265552a20d9e039092b1446b8b0839e8f39acfdfe7f827b58c2999a4a40"
+    },
+    "cti_knowledge_graph_trusted.json": {
+      "bytes": 1996698,
+      "sha256": "ddd5f1c815d3645cc6492f5a8f3dc0135dd65eae290df5266d7b2f1087b5a95f"
+    },
+    "knowledge/alias_overrides.json": {
+      "bytes": 1228,
+      "sha256": "0a7310f64fba762e1e3cafaa2cca906a9f4fc2f546348609be3dd6cd828f0143"
+    },
+    "knowledge/mitre_attack_registry.json": {
+      "bytes": 692742,
+      "sha256": "359a52c961a09423334b852299f1cdb4308846fe83c4779ecb50c0056c6b042c"
+    },
+    "processed_segments.jsonl": {
+      "bytes": 5778668,
+      "sha256": "2377985f3fc3267066b2f7b7d5a39cdca1626da258ac2f352b9ea391a9c04bd9"
+    }
+  },
+  "version": 1
+}

@@ -1,0 +1,27 @@
+{
+  "_note": "Reviewed overrides on top of the MITRE registry. Do NOT add malware as an alias of a group (or vice versa); e.g. BlackEnergy, TrickBot->Wizard Spider and Cobalt Strike->Beacon were removed from the v5 hand-written list because they let unrelated passages through the entity gate.",
+  "short_names": {
+    "sandworm": "G0034",
+    "lazarus": "G0032",
+    "apt29": "G0016",
+    "cozy bear": "G0016",
+    "fancy bear": "G0007",
+    "turla": "G0010",
+    "oilrig": "G0049",
+    "fin7": "G0046"
+  },
+  "sectors": {
+    "banking": ["banks", "banking sector", "financial sector", "financial institutions"],
+    "banks": ["banking", "banking sector", "financial sector", "financial institutions"],
+    "government": ["government agencies", "government entities", "public sector", "ministries"],
+    "hospitality": ["hospitality sector", "hotel chains", "restaurants"],
+    "healthcare": ["healthcare sector", "hospitals", "health care"],
+    "energy": ["energy sector", "power grid", "electric utilities"]
+  },
+  "exclusions": {
+    "lazarus": ["\\bfancy\\s+lazarus\\b"],
+    "lazarus group": ["\\bfancy\\s+lazarus\\b"],
+    "bear": ["\\b(?:fancy|cozy|energetic|venomous|voodoo)\\s+bear\\b"]
+  },
+  "remove_aliases": []
+}

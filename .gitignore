@@ -50,6 +50,11 @@ desktop.ini
 .streamlit/secrets.toml
 
 # Scratch and development debug scripts
+scratch/
+*.orig
+*.orig.*
+*.original.*
+*.fixed.*
 analyze_fp.py
 check_link_labels.py
 diagnose_threatactor_fp.py

@@ -10,116 +10,122 @@
 | Time | Slide / Topic | Key Message to Deliver |
 | :--- | :--- | :--- |
 | **00:00 – 02:30** | **The Problem with LLMs in CTI** | Generic LLMs and naive RAG pipelines suffer from hallucinations, ungrounded graph triples, false consensus from duplicated vendor reports, and temporal naivety when operational realities change. |
-| **02:30 – 05:00** | **System Architecture** | Multi-stage pipeline: Cyber NLP (NER + clause-aware relation extraction) $\rightarrow$ Typed Knowledge Graph $\rightarrow$ Hybrid Dense/BM25/Graph Retrieval $\rightarrow$ DeBERTa-v3 Cross-Encoder NLI $\rightarrow$ Multi-publisher Claim Aggregator $\rightarrow$ Context Resolver. |
-| **05:00 – 10:30** | **Live Interactive Platform Demo** | Run `app.py` through the 4 live demo scenarios (Corroboration $\rightarrow$ Temporal Supersedence $\rightarrow$ Duplicate Suppression $\rightarrow$ Dynamic Graph Expansion). |
-| **10:30 – 12:30** | **Core Research Contributions** | 1) Clause-aware extraction with vendor & spatial trigger suppression; 2) Intra-publisher duplicate passage detection; 3) 4-tier CTI contradiction taxonomy (`TEMPORAL_SUPERSEDENCE`, `CAMPAIGN_DIVERGENCE`, `GENUINE_ATTRIBUTION_DISPUTE`); 4) Structured provenance-grounded evidence reporting. |
-| **12:30 – 15:00** | **Evaluation Metrics & Q&A** | 1,400 graph nodes, 329 edges, 374 validated assertions, 5,991 corpus segments, 60/60 passing unit tests, and real-world AnnoCTR empirical benchmark evaluation. |
+| **02:30 – 05:00** | **System Architecture** | Multi-stage pipeline: Cyber NLP (NER + clause-aware relation extraction) $\rightarrow$ Typed Knowledge Graph $\rightarrow$ Hybrid Dense/BM25/Graph Retrieval $\rightarrow$ DeBERTa-v3 Cross-Encoder NLI $\rightarrow$ Multi-publisher Claim Aggregator $\rightarrow$ Context Resolver $\rightarrow$ Structured Analyst Workbench. |
+| **05:00 – 10:30** | **Live Interactive Platform Demo** | Run the FastAPI Analyst Workbench (`http://localhost:8080`) across core presets (Corroboration $\rightarrow$ Temporal Supersedence $\rightarrow$ Duplicate Suppression $\rightarrow$ Novel Intel Noise Rejection & Graph Expansion). |
+| **10:30 – 12:30** | **Core Research Contributions** | 1) Clause-aware extraction with vendor & spatial trigger suppression; 2) Intra-publisher duplicate passage detection; 3) 4-tier CTI contradiction taxonomy (`TEMPORAL_SUPERSEDENCE`, `CAMPAIGN_DIVERGENCE`, `GENUINE_ATTRIBUTION_DISPUTE`, `AMBIGUOUS_CONFLICT`); 4) Structured provenance-grounded evidence reporting citing exact report and sentence IDs. |
+| **12:30 – 15:00** | **Evaluation Metrics, Limitations & Q&A** | 1,400 graph nodes, 329 edges, 374 rule-extracted assertions (all unverified), 5,991 corpus segments, 79/79 passing unit tests across 16 test suites, and real-world AnnoCTR empirical benchmark evaluation. |
 
 ---
 
-## 2. Live Demo Sequence (Step-by-Step in `app.py`)
+## 2. Live Demo Sequence (FastAPI Analyst Workbench)
 
-Launch command:
+### Launching the Workbench
+Run the background server (or verify running at `http://127.0.0.1:8080`):
 ```bash
-streamlit run app.py
+python demo/server.py
 ```
+Open **`http://localhost:8080`** in any web browser.
 
-### Scenario 1: APT28 Campaign Targeting NATO (Corroborated Intelligence)
-1. **Select**: `Preset 1: APT28 Campaign Targeting NATO (Corroborated)`.
-2. **Click**: `🚀 Ingest, Update Graph & Verify`.
-3. **What to highlight on screen**:
-   * **Left Panel (Cyber NLP)**:
-     - 4 unique entities extracted (`ThreatActor::APT28`, `Malware::Zebrocy`, `Organization::NATO`, `Location::Europe`).
-     - Exactly 2 high-precision relations extracted: `APT28 USES Zebrocy` (trigger: *deploying*) and `APT28 TARGETS NATO` (trigger: *targeted*).
-     - **Point out to committee**: Spurious spatial targeting (`Zebrocy TARGETS Europe`) was suppressed because *across* is a spatial preposition, not an intentional targeting predicate.
-   * **Verification Cards**:
-     - `APT28 USES Zebrocy` $\rightarrow$ **`SUPPORTED`** (7 supporting passages).
-     - `APT28 TARGETS NATO` $\rightarrow$ **`SUPPORTED`** (4 supporting, 4 neutral). Show how NLI correctly identifies using NATO training as a phishing decoy as `NEUTRAL`, while actual victim targeting is `ENTAILMENT`.
-   * **Right Panel (Knowledge Graph)**:
-     - Shows the connected subgraph around `APT28`, `Zebrocy`, and `NATO` within the 1,400-node graph.
+The interface opens with a clean, warm off-white and royal cobalt blue aesthetic (`#f8fafc` background with white elevated cards), a responsive Vis.js knowledge graph canvas, real-time ReAct decision trace, DeBERTa NLI probability gauges, and a quick-select Evaluation Presets ribbon.
 
-### Scenario 2: Law Enforcement Takedown (Temporal Contradiction & Supersedence)
-1. **Select**: `Preset 2: Emotet Infrastructure Takedown (Europol / CISA 2021)`.
-2. **Click**: `🚀 Ingest, Update Graph & Verify`.
-3. **What to highlight on screen**:
-   * **Automated Hypothesis Evaluation**:
-     - Proposition evaluated: `"Emotet USES TrickBot."`
-     - **Historical Baseline Intelligence (2020-10-15, Intel 471)**: Supported with `ENTAILMENT` (Emotet distributed TrickBot).
-     - **Newly Ingested Post-Seizure Intelligence (2021-05-20, Europol / CISA)**: Contradicted with `CONTRADICTION` (score: `0.9951`, infrastructure seized, zero activity).
-   * **Overall Claim Status**: **`⚠️ CONFLICTING_EVIDENCE`**.
-   * **Context Resolver Output**:
-     - Classification: **`TEMPORAL_SUPERSEDENCE (+217 days, CONTRA_LATER)`**.
-     - Time Delta: **217 days** (October 15, 2020 $\rightarrow$ May 20, 2021).
-     - **Explain to committee**: *"Standard NLI would treat this as a factual error or lie. CyberRAG's Context Resolver compares publication dates and resolves it as an operational shift over time: the earlier relationship was historically accurate in 2020, but superseded by law enforcement disruption in 2021."*
-   * **Negative Assertion Retention**:
-     - Show that the negative assertion (`Emotet never downloaded or executed TrickBot post-takedown`) retains full provenance without corrupting the positive baseline graph.
+---
 
-### Scenario 3: TrickBot-Emotet Partnership (Duplicate Evidence Suppression)
-1. **Select**: `Preset 3: TrickBot-Emotet Malware Delivery Partnership`.
-2. **Click**: `🚀 Ingest, Update Graph & Verify`.
-3. **What to highlight on screen**:
-   * Status: **`✅ SUPPORTED`**.
-   * Show metric: **`Duplicates Suppressed: 3`**.
-   * Multi-Publisher Consensus: Reports consensus across **2 distinct publishers** (*Intel 471* and *Zscaler*).
-   * Explain to committee: *"A graph assertion and a document passage frequently share verbatim phrasing. Rather than treating identical text as independent corroboration, our pipeline suppresses duplicate passages and tallies genuine multi-publisher consensus."*
+### Key Scenarios Walkthrough
 
-### Scenario 4: Sandworm & Cyclops Blink (Novel Threat Intel & Dynamic Graph Expansion)
-1. **Select**: `Preset 4: Novel Threat Intelligence (Sandworm & Cyclops Blink - Dynamic Graph Expansion)`.
-2. **Click**: `🚀 Ingest, Update Graph & Verify`.
-3. **What to highlight on screen**:
-   * **Verification Cards (False Contradiction Prevention)**:
-     - All 3 newly extracted claims (`Sandworm USES Cyclops Blink`, `Sandworm TARGETS Energy Sector`, `Sandworm TARGETS Ukraine`) evaluate to **`⚪ NO EVIDENCE IN CORPUS`** (`INSUFFICIENT_EVIDENCE`).
-     - **Explain to committee**: *"Because Sandworm and Cyclops Blink are novel entities not present in the historical 104-report corpus, our entity-aware retrieval filter prevents unrelated corpus passages (e.g., Taurus sandbox evasion) from reaching the NLI model and falsely triggering high-confidence contradictions. The system correctly acknowledges zero prior baseline evidence rather than fabricating a conflict."*
-   * **Right Panel (Graph Expansion)**:
-     - Metrics display: **`Total Nodes: 1,402 (+2 New Nodes)`**, **`Total Edges: 334 (+5 New Edges)`**.
-     - Point to the **✦ Glowing Neon Cyan (`#00f5d4`) Diamond Nodes** for `Sandworm` and `Cyclops Blink`.
-     - Explain that the underlying baseline graph on disk (`data/cti_knowledge_graph_trusted.json`) remains completely untouched, proving safe in-memory session expansion.
+#### Scenario 1: Corroborated Attribution (Preset 1)
+* **Query / Preset**: `Preset 1: APT28 USES Zebrocy` (or `Does APT28 use Zebrocy?`)
+* **Click**: `Investigate Claim`
+* **What to Highlight to Committee**:
+  1. **ReAct Decision Trace**: The agent expands aliases (`Fancy Bear`, `Pawn Storm`, `Sednit`), searches the typed knowledge graph, executes hybrid retrieval across dense/sparse pools, and passes candidate passages to the `EntityAwareEvidenceGate`.
+  2. **Knowledge Graph Canvas**: The graph centers on `APT28` and `Zebrocy`, displaying the verified `USES` edge and linked neighboring techniques and malware.
+  3. **Verification Verdict**: Resolves as **`SUPPORTED`** (`SINGLE_SOURCE` / `CORROBORATED` depending on multi-publisher corroboration).
+  4. **Evidence Cards**: Show sentence-level provenance with report IDs, publication dates, and verbatim source sentences.
 
-### Scenario 5: Arbitrary PDF / TXT Upload (Generalization)
-1. Upload a custom plain-text or PDF report (e.g., `custom_analyst_report.txt`).
-2. Show that the entire pipeline—text extraction, indicator refanging, NER, relation extraction, graph expansion, and NLI verification—executes end-to-end without crashing.
+---
+
+#### Scenario 2: Temporal Contradiction & Supersedence (Preset 2)
+* **Query / Preset**: `Preset 2: Emotet USES TrickBot` (or `Does Emotet distribute TrickBot? Post-takedown 2021`)
+* **Click**: `Investigate Claim`
+* **What to Highlight to Committee**:
+  1. **The Conflict**:
+     - Earlier historical intelligence (October 2020, Intel 471 / Zscaler): `ENTAILMENT` (Emotet distributed TrickBot payloads).
+     - Newly ingested post-seizure intelligence (May 20, 2021, Europol / CISA): `CONTRADICTION` (score > 0.99, Emotet infrastructure disrupted and ceased distributing TrickBot).
+  2. **Context-Aware Contradiction Resolution**:
+     - Standard NLI or RAG would label this a simple factual contradiction (`CONTRADICTED`) or average the probabilities.
+     - CyberRAG inspects the publication timestamps, detects a **233-day delta** across the January 2021 infrastructure takedown, and outputs **`TEMPORAL_SUPERSEDENCE`** (`CONTRA_LATER`).
+  3. **Synthetic Overlay Provenance**:
+     - Emphasize to the committee that the post-takedown report carries the explicit provenance label `DEMO – SYNTHETIC (Europol/CISA)` to demonstrate temporal reasoning without corrupting the static historical baseline.
+
+---
+
+#### Scenario 3: Duplicate Evidence Suppression (Preset 3)
+* **Query / Preset**: `Preset 3: TrickBot USES Emotet`
+* **Click**: `Investigate Claim`
+* **What to Highlight to Committee**:
+  1. Multiple passages across syndicated vendor reports share near-identical text.
+  2. Rather than counting repeated text as separate corroborating sources, the pipeline computes text hashes and passage normalizations, suppressing 3 duplicate passages.
+  3. The final support count reflects genuine independent publisher consensus.
+
+---
+
+#### Scenario 4: Noise Rejection on Novel Threat Intel (Preset 4)
+* **Query / Preset**: `Preset 4: Sandworm USES Cyclops Blink`
+* **Click**: `Investigate Claim`
+* **What to Highlight to Committee**:
+  1. `Sandworm` and `Cyclops Blink` are absent from the historical 104-report baseline corpus.
+  2. Standard cross-encoders without an entity gate would score irrelevant corpus passages (e.g. general botnet evasion) and hallucinate high-confidence false contradictions or false entailments.
+  3. CyberRAG's `EntityAwareEvidenceGate` verifies entity co-occurrence, drops ungrounded candidates, and safely returns **`INSUFFICIENT_EVIDENCE`** with zero hallucinated claims.
+
+---
+
+#### Scenario 5: Live Custom Report Ingestion & Graph Expansion
+* **Action**: Click `+ Ingest Threat Report` in the top header.
+* **Feature**:
+  1. Analysts can choose one of the 4 bundled preset CTI reports (`Europol Takedown`, `APT28 NATO Decoy`, `Emotet-Trickbot Partnership`, `Sandworm Energy Grid`) or paste an arbitrary unstructured CTI report.
+  2. Click `Analyze & Extract Intelligence`.
+  3. The Cyber NLP pipeline extracts entities and clause-aware relations, links MITRE ATT&CK IDs, and dynamically expands the in-memory graph without mutating baseline data on disk.
 
 ---
 
 ## 3. Anticipated Committee Questions & Defenses
 
-### Q1: "Why use a DeBERTa cross-encoder for NLI instead of prompting GPT-4?"
-> **Answer**:  
-> *"Generative LLMs are prone to sycophancy, position bias, and non-deterministic text generation. A dedicated NLI cross-encoder (`cross-encoder/nli-deberta-v3-base`) models joint cross-attention between premise and hypothesis simultaneously across all transformer layers. It outputs reproducible softmax distributions in sub-second inference time with zero API costs, zero external data leakage, and zero hallucination."*
+### Q1: "Are the 374 assertions in your baseline graph human-verified?"
+> **Defense**:  
+> *"No, and we explicitly document this across the codebase and paper. All 374 historical assertions carry `trust_level: "unverified"` and `human_verified: false`. They were extracted via automated clause-aware syntactic rules from 62 AnnoCTR reports. Automated filtering must not be mistaken for human adjudication. All 374 graph assertions are automatically extracted and unreviewed; our formal double-annotator study measured relation extraction precision at about one third."*
 
-### Q2: "Why can't you just average NLI probabilities into a factual truth score?"
-> **Answer**:  
-> *"Softmax scores represent linguistic textual alignment (whether text A logically entails text B), not empirical historical truth. In cyber threat intelligence, a vendor can write an erroneous rumor with 100% syntactic confidence. Conflating neural confidence with ground truth violates scientific integrity. We report source provenance, distinct publisher counts, and raw softmax scores separately."*
+### Q2: "What is your measured relation extraction precision on real text?"
+> **Defense**:  
+> *"The legacy file `outputs/reports/relation_sample_100_audit.json` was an automated rule-based self-check, not a measurement of accuracy. We measured real relation precision in a formal first-round double-annotator human study on a random sample of 100 relations (seed 42) drawn from the extractor's 192 candidate relations in `extracted_relations.json` across 36 reports—this is distinct from the 374 graph assertions. Two annotators evaluated each relation from the evidence sentence alone under original guidelines (which were later refined after the first round, though reported figures come strictly from original rules). Annotator A found 31/100 correct = 31.0% (95% Wilson CI 22.8%–40.6%), and Annotator B (revised sheet) found 40/100 correct = 40.0% (CI 30.9%–49.8%), changing 3 labels from an initial 37% submission with κ = 0.82. Agreement was 89/100 with substantial Cohen's κ = 0.76; 11 disagreements remain unadjudicated. Both agreed correct on 30 rows, bounding precision between 30% and 41%, with headline relation precision of about one third. On rows both labelled incorrect, the error mix was: relation not stated (~37), wrong entity (~19), reversed direction (2), and negated/hypothetical (1). The primary cause of false extractions is that entities appear in the same passage without the sentence stating the relation; enforcing a same-sentence constraint is future work. Breakdown by relation: TARGETS 8/27, USES 11/32, USES_TECHNIQUE 10/27, and EXPLOITS 1/3 (EXPLOITS too small to interpret). Extractor confidence scores do not separate correct from incorrect relations (mean 0.95 vs 0.91). System limits must be stated side by side: NER F1 0.4396 on AnnoCTR test (baseline 0.3497); relation precision about one third; 374 assertions automatically extracted and unreviewed; and no EXPLOITS edges in the baseline graph."*
 
-### Q3: "Why doesn't CyberRAG generate natural-language answers with an LLM?"
-> **Answer**:  
-> *"Our AnswerGenerator is deliberately designed to produce structured, provenance-grounded intelligence syntheses. In mission-critical CTI analysis, an analyst needs traceable citations: exact Report IDs, publishers, publication dates, and verbatim evidence sentences. Unconstrained generative text introduces subtle hallucinations that can mislead defenders. We prioritize auditability over generative fluency."*
+### Q3: "Why use a dedicated DeBERTa cross-encoder instead of prompting a frontier LLM like GPT-4?"
+> **Defense**:  
+> *"Generative LLMs suffer from prompt sensitivity, position bias, and non-deterministic outputs. A dedicated cross-encoder (`cross-encoder/nli-deberta-v3-base`) performs joint cross-attention across premise and hypothesis simultaneously across all transformer layers. It outputs reproducible, sub-second semantic alignment scores completely offline with zero external API costs and zero data leakage."*
 
-### Q4: "What does your Graph Retrieval actually do?"
-> **Answer**:  
-> *"Graph retrieval in CyberRAG is implemented as entity-linked assertion lookup and multi-hop neighborhood traversal. It identifies query entities, traverses adjacent validated graph edges, and retrieves the underlying verbatim evidence sentences. We do not claim unconstrained semantic graph reasoning; every graph triple is strictly grounded in an ingested CTI source sentence."*
+### Q4: "Can NLI softmax scores be interpreted as the probability of factual truth?"
+> **Defense**:  
+> *"No. Softmax scores measure linguistic entailment (whether premise text logically entails a hypothesis), not real-world historical ground truth. A vendor can state a false rumor with 100% grammatical confidence. CyberRAG therefore separates linguistic NLI alignment from contextual domain verification (publisher counts, dates, and contradiction resolution)."*
 
-### Q5: "How do you distinguish a genuine CTI contradiction from a temporal update?"
-> **Answer**:  
-> *"NLI models operate on static linguistic semantics—they cannot understand that threat actors adapt over time. When conflicting intelligence is detected, our Context Resolver inspects publication dates and campaign scope. When conflicting records are separated by $>90$ days, the system classifies the conflict as `TEMPORAL_SUPERSEDENCE` rather than flagging an erroneous attribution dispute."*
+### Q5: "Why did you archive the v5 retrieval ablation study?"
+> **Defense**:  
+> *"During methodological review, we discovered a circular dependency in the exploratory v5 ablation: the hand-curated alias dictionary used to generate gold labels was also supplied to the expanded retrieval pipeline. In accordance with rigorous scientific practice, we archived that exploratory benchmark to `outputs/legacy/` and explicitly document non-circular relation evaluation (e.g., against AZERG) as future work."*
 
-### Q6: "How do you prevent reporting cybersecurity vendors from being flagged as threat actors or targets?"
-> **Answer**:  
-> *"Reporting vendors (e.g., Mandiant, CrowdStrike, Zscaler) frequently appear in phrases like 'observed by Mandiant researchers.' Our relation extractor implements category-scoped vendor suppression: whenever an Organization entity appears in a passive observation context, it is suppressed from becoming the subject or object of a `TARGETS` or `USES` relationship."*
+### Q6: "What does your Graph Retrieval actually do?"
+> **Defense**:  
+> *"Graph retrieval in CyberRAG is implemented as entity-linked assertion lookup and adjacent neighborhood traversal. It retrieves evidence-grounded relational triples connected to extracted query entities; it does not claim unconstrained multi-hop reasoning over arbitrary unindexed graph paths."*
+
+### Q7: "Why do MCP and the Demo Workbench differ on 'Emotet USES TrickBot'?"
+> **Defense**:  
+> *"On the clean corpus the two interfaces can disagree. The workbench verifies Emotet uses TrickBot (7 supporting passages, 0 contradicting), because the agent loop's clause-aware gating filters out headline noise. Meanwhile, the MCP server flags a conflict (a genuine attribution dispute, 106-day delta) caused by an Intel 471 article title containing a negation ('Emotet takedown is not like the Trickbot takedown') which DeBERTa cross-encoder evaluates as a semantic contradiction. With the simulated takedown record added (`CTI_LOAD_DEMO_OVERLAY=1`), the workbench incorporates the May 20, 2021 Europol/CISA disruption statement and demonstrates temporal supersedence (233 days, `CONTRA_LATER`)."*
 
 ---
 
-## 4. Evaluation Summary for Committee
+## 4. Evaluation Metrics Summary for Slides
 
-When presenting evaluation results, distinguish between evaluation settings:
-
-1. **Synthetic Controlled Challenge Benchmark**:
-   * Evaluated under GroupKFold (Leave-One-Report-Out) cross-validation: **F1 = 0.9809**.
-   * Demonstrates precision on canonical entities with dense relational triggers.
-2. **Official Bosch Research AnnoCTR Benchmark (LREC-COLING 2024)**:
-   * Evaluated on official train (7,570 sentences) and test (3,059 sentences) splits with **strictly 0% document overlap and zero leakage**: **F1 = 0.4396**.
-   * Represents real-world noisy CTI performance, delivering a **+28.5% relative F1 improvement** over dictionary gazetteers (0.3421).
-3. **Unseen CTI Generalization**:
-   * Evaluated on 4 novel threat reports: **F1 = 0.9200** with **100% provenance metadata compliance**.
-4. **Unit Test Suite**:
-   * **60/60 unit tests passing** across 13 test suites (`python run_tests.py`).
+* **Automated Test Suite**: **79 / 79 unit and integration tests passing** across 16 test suites (`python run_tests.py`), running 100% offline.
+* **Corpus Scale**: 104 authentic threat reports, 5,991 indexed text segments, 2,698 paragraphs.
+* **Knowledge Graph**: 1,400 nodes, 329 edges, 374 rule-extracted unverified assertions, 1,726 MITRE ATT&CK concepts.
+* **AnnoCTR NER Benchmark (Official Test Split, Zero Overlap)**:
+  - Hybrid NER F1 = **0.4396** (+28.5% relative gain over dictionary gazetteer at 0.3421).
+  - High precision on Organizations (0.51) and Threat Actors (0.48); modest recall on complex Techniques (0.10).
+* **Unseen CTI Test Paragraphs (Generalization Check)**:
+  - Precision = **0.9388**, Recall = **0.9020**, F1 = **0.9200**, with **100.0% provenance metadata compliance**.

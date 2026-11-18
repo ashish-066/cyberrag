@@ -32,8 +32,9 @@ class CyberKnowledgeGraphAnalytics:
 
         # Edge relation distribution
         edge_relations: Dict[str, int] = {}
-        for _, _, key in self.graph.edges(keys=True):
-            edge_relations[key] = edge_relations.get(key, 0) + 1
+        for _, _, data in self.graph.edges(data=True):
+            rel = data.get("relation_type") or data.get("key") or data.get("relation") or "RELATES_TO"
+            edge_relations[rel] = edge_relations.get(rel, 0) + 1
 
         # Centrality analysis (using simple directed graph view)
         di_graph = nx.DiGraph(self.graph)

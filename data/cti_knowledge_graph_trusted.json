@@ -33341,9 +33341,9 @@
       ]
     },
     {
-      "id": "Technique::T1055.013 - Process Doppelgänging",
+      "id": "Technique::T1055.013 - Process Doppelg\u00e4nging",
       "node_type": "ENTITY",
-      "name": "T1055.013 - Process Doppelgänging",
+      "name": "T1055.013 - Process Doppelg\u00e4nging",
       "category": "Technique",
       "canonical_id": "TECH-T1055.013",
       "mention_count": 1,
@@ -33363,7 +33363,7 @@
         "2020-09-29"
       ],
       "surface_forms": [
-        "Process Doppelgänging"
+        "Process Doppelg\u00e4nging"
       ]
     },
     {
@@ -42911,7 +42911,7 @@
       "source_publisher": "Zscaler",
       "publication_date": "2020-07-17",
       "sentence_id": "ANNOCTR-ZSCALER-2020-07-17-NEW-VOICEMAIL-THEMED-PHIS::p6::s0",
-      "evidence_text": "* Figure 2: Contents of HTML attachment * We discovered more than 200 HTML email attachments of this variant, and we observed the following similarities between them. * All of these HTML attachments followed the naming convention:! [☎] (https:// mail.google.com/mail/e/260e) Play \\ _ VN \\ _ < string \\ _ of \\ _ 11 \\ _ digits >. html * An icon of a telephone was used in the filename for social engineering purposes",
+      "evidence_text": "* Figure 2: Contents of HTML attachment * We discovered more than 200 HTML email attachments of this variant, and we observed the following similarities between them. * All of these HTML attachments followed the naming convention:! [\u260e] (https:// mail.google.com/mail/e/260e) Play \\ _ VN \\ _ < string \\ _ of \\ _ 11 \\ _ digits >. html * An icon of a telephone was used in the filename for social engineering purposes",
       "trigger": "used",
       "reports": [
         "ANNOCTR-ZSCALER-2020-07-17-NEW-VOICEMAIL-THEMED-PHIS"
@@ -42929,7 +42929,7 @@
           "publication_date": "2020-07-17",
           "sentence_id": "ANNOCTR-ZSCALER-2020-07-17-NEW-VOICEMAIL-THEMED-PHIS::p6::s0",
           "paragraph_id": "ANNOCTR-ZSCALER-2020-07-17-NEW-VOICEMAIL-THEMED-PHIS::p6",
-          "evidence_text": "* Figure 2: Contents of HTML attachment * We discovered more than 200 HTML email attachments of this variant, and we observed the following similarities between them. * All of these HTML attachments followed the naming convention:! [☎] (https:// mail.google.com/mail/e/260e) Play \\ _ VN \\ _ < string \\ _ of \\ _ 11 \\ _ digits >. html * An icon of a telephone was used in the filename for social engineering purposes",
+          "evidence_text": "* Figure 2: Contents of HTML attachment * We discovered more than 200 HTML email attachments of this variant, and we observed the following similarities between them. * All of these HTML attachments followed the naming convention:! [\u260e] (https:// mail.google.com/mail/e/260e) Play \\ _ VN \\ _ < string \\ _ of \\ _ 11 \\ _ digits >. html * An icon of a telephone was used in the filename for social engineering purposes",
           "trigger": "used",
           "confidence": 0.95,
           "polarity": "positive",
@@ -51437,7 +51437,7 @@
       "source_publisher": "Intel 471",
       "publication_date": "2020-11-16",
       "sentence_id": "ANNOCTR-INTEL471-2020-11-16-RANSOMWARE-AS-A-SERVICE-2::p14::s1",
-      "evidence_text": "The most known and discussed victim of DoppelPaymer ransomware is one against Düsseldorf University Clinic in September 2020.",
+      "evidence_text": "The most known and discussed victim of DoppelPaymer ransomware is one against D\u00fcsseldorf University Clinic in September 2020.",
       "trigger": "against",
       "reports": [
         "ANNOCTR-INTEL471-2020-11-16-RANSOMWARE-AS-A-SERVICE-2"
@@ -51455,7 +51455,7 @@
           "publication_date": "2020-11-16",
           "sentence_id": "ANNOCTR-INTEL471-2020-11-16-RANSOMWARE-AS-A-SERVICE-2::p14::s1",
           "paragraph_id": "ANNOCTR-INTEL471-2020-11-16-RANSOMWARE-AS-A-SERVICE-2::p14",
-          "evidence_text": "The most known and discussed victim of DoppelPaymer ransomware is one against Düsseldorf University Clinic in September 2020.",
+          "evidence_text": "The most known and discussed victim of DoppelPaymer ransomware is one against D\u00fcsseldorf University Clinic in September 2020.",
           "trigger": "against",
           "confidence": 0.95,
           "polarity": "positive",
@@ -51479,7 +51479,7 @@
       "source_publisher": "Intel 471",
       "publication_date": "2020-11-16",
       "sentence_id": "ANNOCTR-INTEL471-2020-11-16-RANSOMWARE-AS-A-SERVICE-2::p14::s1",
-      "evidence_text": "The most known and discussed victim of DoppelPaymer ransomware is one against Düsseldorf University Clinic in September 2020.",
+      "evidence_text": "The most known and discussed victim of DoppelPaymer ransomware is one against D\u00fcsseldorf University Clinic in September 2020.",
       "trigger": "against",
       "reports": [
         "ANNOCTR-INTEL471-2020-11-16-RANSOMWARE-AS-A-SERVICE-2"
@@ -51497,7 +51497,7 @@
           "publication_date": "2020-11-16",
           "sentence_id": "ANNOCTR-INTEL471-2020-11-16-RANSOMWARE-AS-A-SERVICE-2::p14::s1",
           "paragraph_id": "ANNOCTR-INTEL471-2020-11-16-RANSOMWARE-AS-A-SERVICE-2::p14",
-          "evidence_text": "The most known and discussed victim of DoppelPaymer ransomware is one against Düsseldorf University Clinic in September 2020.",
+          "evidence_text": "The most known and discussed victim of DoppelPaymer ransomware is one against D\u00fcsseldorf University Clinic in September 2020.",
           "trigger": "against",
           "confidence": 0.95,
           "polarity": "positive",
@@ -51521,7 +51521,7 @@
       "source_publisher": "Intel 471",
       "publication_date": "2020-11-16",
       "sentence_id": "ANNOCTR-INTEL471-2020-11-16-RANSOMWARE-AS-A-SERVICE-2::p14::s1",
-      "evidence_text": "The most known and discussed victim of DoppelPaymer ransomware is one against Düsseldorf University Clinic in September 2020.",
+      "evidence_text": "The most known and discussed victim of DoppelPaymer ransomware is one against D\u00fcsseldorf University Clinic in September 2020.",
       "trigger": "against",
       "reports": [
         "ANNOCTR-INTEL471-2020-11-16-RANSOMWARE-AS-A-SERVICE-2"
@@ -51539,7 +51539,7 @@
           "publication_date": "2020-11-16",
           "sentence_id": "ANNOCTR-INTEL471-2020-11-16-RANSOMWARE-AS-A-SERVICE-2::p14::s1",
           "paragraph_id": "ANNOCTR-INTEL471-2020-11-16-RANSOMWARE-AS-A-SERVICE-2::p14",
-          "evidence_text": "The most known and discussed victim of DoppelPaymer ransomware is one against Düsseldorf University Clinic in September 2020.",
+          "evidence_text": "The most known and discussed victim of DoppelPaymer ransomware is one against D\u00fcsseldorf University Clinic in September 2020.",
           "trigger": "against",
           "confidence": 0.95,
           "polarity": "positive",
@@ -52106,7 +52106,7 @@
       "source_publisher": "Zscaler",
       "publication_date": "2020-06-26",
       "sentence_id": "ANNOCTR-ZSCALER-2020-06-26-TAURUS-NEW-STEALER-TOWN::p10::s0",
-      "evidence_text": "1. * * GeTNht.com * * → saved with the name * \" * * * * j2tyq.com * * * * \" → * Legitimate AutoIt3. exe 2. * * bAMI.com → * * saved with the name * * \" st6zh \" → * * Base64-encoded AutoIt script having certificate header 3. * * wsNcf.com * * → saved with the name * * \" wsNcf.com \" * * → Taurus Stealer Here, PowerShell is using the Certutil.exe command to decode the payload and execute it on the victim's machine.",
+      "evidence_text": "1. * * GeTNht.com * * \u2192 saved with the name * \" * * * * j2tyq.com * * * * \" \u2192 * Legitimate AutoIt3. exe 2. * * bAMI.com \u2192 * * saved with the name * * \" st6zh \" \u2192 * * Base64-encoded AutoIt script having certificate header 3. * * wsNcf.com * * \u2192 saved with the name * * \" wsNcf.com \" * * \u2192 Taurus Stealer Here, PowerShell is using the Certutil.exe command to decode the payload and execute it on the victim's machine.",
       "trigger": "using",
       "reports": [
         "ANNOCTR-ZSCALER-2020-06-26-TAURUS-NEW-STEALER-TOWN"
@@ -52124,7 +52124,7 @@
           "publication_date": "2020-06-26",
           "sentence_id": "ANNOCTR-ZSCALER-2020-06-26-TAURUS-NEW-STEALER-TOWN::p10::s0",
           "paragraph_id": "ANNOCTR-ZSCALER-2020-06-26-TAURUS-NEW-STEALER-TOWN::p10",
-          "evidence_text": "1. * * GeTNht.com * * → saved with the name * \" * * * * j2tyq.com * * * * \" → * Legitimate AutoIt3. exe 2. * * bAMI.com → * * saved with the name * * \" st6zh \" → * * Base64-encoded AutoIt script having certificate header 3. * * wsNcf.com * * → saved with the name * * \" wsNcf.com \" * * → Taurus Stealer Here, PowerShell is using the Certutil.exe command to decode the payload and execute it on the victim's machine.",
+          "evidence_text": "1. * * GeTNht.com * * \u2192 saved with the name * \" * * * * j2tyq.com * * * * \" \u2192 * Legitimate AutoIt3. exe 2. * * bAMI.com \u2192 * * saved with the name * * \" st6zh \" \u2192 * * Base64-encoded AutoIt script having certificate header 3. * * wsNcf.com * * \u2192 saved with the name * * \" wsNcf.com \" * * \u2192 Taurus Stealer Here, PowerShell is using the Certutil.exe command to decode the payload and execute it on the victim's machine.",
           "trigger": "using",
           "confidence": 0.95,
           "polarity": "positive",

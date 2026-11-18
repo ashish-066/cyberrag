@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CyberRAG — Evidence-Verified Threat Intelligence</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2312203A'/%3E%3Cpath d='M16 6l8 3v7c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V9z' fill='none' stroke='%237FD1F2' stroke-width='2'/%3E%3Cpath d='M12 16l3 3 5-6' fill='none' stroke='%237FD1F2' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/static/vis-network.css">
+<style>
+:root{
+  --bg:#f4f6fa; --card:#fff; --ink:#0f172a; --muted:#5b6b82; --line:#e2e8f0; --soft:#f1f5fa;
+  --navy:#12203a; --blue:#1a72a0; --cyan:#7fd1f2;
+  --green:#1e7a47; --green-bg:#e3f4ea;
+  --purple:#6a4c93; --purple-bg:#efe9f7;
+  --amber:#9a5b00; --amber-bg:#fdf0d5;
+  --red:#b42318; --red-bg:#fde8e6;
+  --slate:#475569; --slate-bg:#e8edf4;
+  --radius:14px; --shadow:0 1px 2px rgba(15,23,42,.05),0 6px 20px -8px rgba(15,23,42,.12);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Segoe UI",system-ui,-apple-system,"Inter",Roboto,Arial,sans-serif}
+button{font:inherit;cursor:pointer}
+code,.mono{font-family:ui-monospace,"Cascadia Mono",Consolas,Menlo,monospace}
+.wrap{max-width:1280px;margin:0 auto;padding:0 24px}
+
+/* ---------- header ---------- */
+header{background:var(--navy);color:#fff}
+.head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 0;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:40px;height:40px;border-radius:10px;background:#1b3050;display:grid;place-items:center;border:1px solid #2b4570}
+.brand h1{margin:0;font-size:20px;letter-spacing:.2px}
+.brand p{margin:0;font-size:12.5px;color:#a9bad3}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{display:flex;align-items:center;gap:7px;font-size:12px;color:#cfdbee;background:#1b3050;border:1px solid #2b4570;border-radius:999px;padding:5px 11px;white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;background:#64748b}
+.dot.ok{background:#34d399}.dot.warn{background:#fbbf24}.dot.bad{background:#f87171}
+.hero{padding:6px 0 30px}
+.hero h2{margin:0 0 4px;font-size:26px;font-weight:650;letter-spacing:.1px}
+.hero p{margin:0;color:#a9bad3;max-width:760px}
+
+/* ---------- query ---------- */
+.querybox{margin-top:-22px;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;border:1px solid var(--line)}
+.qrow{display:flex;gap:10px}
+.qrow input{flex:1;min-width:0;font-size:17px;padding:13px 16px;border:1.5px solid var(--line);border-radius:10px;outline:none;background:#fbfcfe;color:var(--ink)}
+.qrow input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,114,160,.15);background:#fff}
+.btn{border:0;border-radius:10px;padding:0 22px;font-weight:600;font-size:15px;background:var(--navy);color:#fff;display:flex;align-items:center;gap:8px;height:48px}
+.btn:hover{background:#1b3050}.btn:disabled{opacity:.6;cursor:progress}
+.btn.ghost{background:#fff;color:var(--navy);border:1.5px solid var(--line)}
+.btn.ghost:hover{background:var(--soft)}
+.qmeta{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:14px 2px 10px;flex-wrap:wrap}
+.qmeta .lbl{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:650}
+.scn{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:980px){.scn{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.scn{grid-template-columns:1fr}.qrow{flex-direction:column}.btn{justify-content:center}.hero h2{font-size:21px}.hero p{font-size:14px}.claim{font-size:20px}.wrap{padding:0 14px}}
+.card-s{position:relative;text-align:left;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:11px 13px 11px 16px;transition:.15s}
+.card-s:hover{border-color:var(--blue);transform:translateY(-1px);box-shadow:0 8px 18px -10px rgba(15,23,42,.3)}
+.card-s::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:4px;border-radius:0 4px 4px 0;background:var(--c)}
+.card-s .t{font-weight:650;font-size:14px;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.card-s .q{font-size:13px;color:var(--ink);margin-top:2px}
+.card-s .d{font-size:12px;color:var(--muted);margin-top:3px}
+.tag{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;border-radius:999px;padding:2px 8px;white-space:nowrap}
+.k{display:inline-block;min-width:18px;text-align:center;font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:0 4px;margin-right:6px;background:#fff}
+
+/* ---------- results ---------- */
+main{padding:22px 0 40px}
+.placeholder{background:var(--card);border:1.5px dashed #c8d3e2;border-radius:var(--radius);padding:44px 24px;text-align:center;color:var(--muted)}
+.placeholder h3{margin:0 0 6px;color:var(--ink);font-size:18px}
+.steps{display:flex;justify-content:center;gap:22px;flex-wrap:wrap;margin-top:18px;font-size:13px}
+.steps span{display:flex;align-items:center;gap:8px}
+.steps b{width:24px;height:24px;border-radius:50%;background:var(--soft);display:grid;place-items:center;color:var(--blue);font-size:12px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.panel>h3{margin:0;padding:14px 18px;border-bottom:1px solid var(--line);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;align-items:center;gap:10px}
+.panel .body{padding:16px 18px}
+.grid{display:grid;grid-template-columns:1.25fr 1fr;gap:18px;margin-top:18px;align-items:start}
+@media(max-width:1020px){.grid{grid-template-columns:1fr}}
+
+.verdict{display:grid;grid-template-columns:auto 1fr auto;gap:22px;align-items:center;padding:22px 24px;border-left:8px solid var(--c);background:linear-gradient(90deg,var(--bg2),#fff 55%)}
+@media(max-width:900px){.verdict{grid-template-columns:1fr}}
+.badge{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:170px;padding:14px 18px;border-radius:12px;background:var(--bg2);color:var(--c);border:1.5px solid var(--c)}
+.badge svg{width:30px;height:30px}
+.badge .st{font-weight:800;font-size:15px;letter-spacing:.06em;text-align:center}
+.claim{font-size:24px;font-weight:700;line-height:1.25;letter-spacing:.1px}
+.claim .rel{color:var(--c)}
+.why{margin-top:8px;color:#334155;font-size:15.5px;max-width:720px}
+.metrics{display:grid;grid-template-columns:repeat(3,auto);gap:6px 26px}
+@media(max-width:1100px){.metrics{grid-template-columns:repeat(3,1fr)}}
+.metric .v{font-size:26px;font-weight:750;line-height:1.1}
+.metric .l{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.metric small{display:block;color:var(--muted);font-size:11.5px}
+
+.tabs{display:flex;gap:6px}
+.tab{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:5px 13px;font-size:13px;font-weight:600;color:var(--muted)}
+.tab.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.tab .n{opacity:.75;margin-left:4px}
+.ev{border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:11px;background:#fff;border-left:5px solid var(--c)}
+.ev .top{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.src{font-weight:700;font-size:13.5px}
+.date{color:var(--muted);font-size:12.5px}
+.ev .txt{font-size:15px;line-height:1.55;color:#1e293b}
+.ev mark{background:#dff1fb;color:#0b4a6a;border-radius:3px;padding:0 2px}
+.ev mark.hedge{background:var(--amber-bg);color:var(--amber);border-bottom:2px dotted var(--amber)}
+.ev .foot{display:flex;gap:12px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.bar{flex:1;min-width:130px;height:7px;background:var(--soft);border-radius:999px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--c);border-radius:999px}
+.pill{font-size:11px;font-weight:700;border-radius:999px;padding:2px 8px;letter-spacing:.05em}
+.rid{font-size:11px;color:#8695ab;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.more{background:none;border:0;color:var(--blue);font-weight:600;padding:0;font-size:13px;margin-top:4px}
+.sim{background:#fff3cd;color:#7a5600;border:1px solid #f1d98a}
+.empty{padding:26px;text-align:center;color:var(--muted)}
+
+.timeline{padding:20px 22px 10px}
+.axis{position:relative;height:58px;margin:8px 10px 0}
+.axis::before{content:"";position:absolute;left:0;right:0;top:26px;height:3px;background:var(--line);border-radius:3px}
+.pt{position:absolute;top:18px;width:18px;height:18px;margin-left:-9px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1.5px var(--c);background:var(--c)}
+.pt span{position:absolute;top:24px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--muted);white-space:nowrap}
+.span{position:absolute;top:20px;height:14px;border-radius:7px;background:rgba(106,76,147,.12);border:1.5px dashed var(--purple)}
+.span em{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-style:normal;font-size:12px;font-weight:700;color:var(--purple);white-space:nowrap}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);padding:6px 22px 16px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+
+#graph{height:380px;border-radius:10px;background:#fbfcfe;border:1px solid var(--line)}
+.glegend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:10px}
+.glegend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.gnote{font-size:12.5px;color:var(--muted);margin-top:8px}
+
+.pipe{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:12px}
+.pipe .s{font-size:11.5px;font-weight:700;letter-spacing:.04em;background:var(--soft);border-radius:7px;padding:4px 9px;color:#334155}
+.pipe .s.retry{background:var(--amber-bg);color:var(--amber)}
+.pipe .s.end{background:var(--navy);color:#fff}
+.pipe .a{color:#a8b3c4}
+details.step{border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:#fff}
+details.step summary{cursor:pointer;list-style:none;padding:10px 13px;display:flex;gap:10px;align-items:center;font-size:14px}
+details.step summary::-webkit-details-marker{display:none}
+details.step summary b.n{width:24px;height:24px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-size:12px;flex:none}
+details.step summary .st{font-weight:700;font-size:12px;letter-spacing:.06em;color:var(--blue)}
+details.step .in{padding:2px 14px 12px 47px;font-size:13.5px;color:#334155}
+details.step .in .tool{color:var(--muted);font-size:12px;margin-top:6px}
+
+.brief{font-size:14.5px;color:#243247}
+.brief h3,.brief h4{margin:12px 0 6px;font-size:14.5px;color:var(--navy)}
+.brief blockquote{margin:6px 0 10px;padding:6px 12px;border-left:3px solid var(--cyan);background:var(--soft);border-radius:0 8px 8px 0;color:#334155}
+.brief ul{margin:6px 0 6px 18px;padding:0}
+.brief code{background:var(--soft);padding:1px 5px;border-radius:4px;font-size:12.5px}
+
+.skeleton{padding:22px 24px}
+.sk{height:14px;border-radius:7px;background:linear-gradient(90deg,#e8edf4,#f6f8fb,#e8edf4);background-size:200% 100%;animation:sh 1.3s infinite;margin-bottom:12px}
+@keyframes sh{to{background-position:-200% 0}}
+.running{display:flex;align-items:center;gap:12px;font-weight:600}
+.spin{width:22px;height:22px;border:3px solid #cfe0ee;border-top-color:var(--blue);border-radius:50%;animation:rot .8s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+.note{margin-top:22px;font-size:12.5px;color:var(--muted);display:flex;gap:10px;align-items:flex-start;line-height:1.55}
+.note b{color:#334155}
+footer{border-top:1px solid var(--line);padding:18px 0 30px;color:var(--muted);font-size:12.5px}
+.err{background:var(--red-bg);border:1px solid #f3b9b3;color:var(--red);border-radius:12px;padding:16px 18px;margin-bottom:16px}
+
+/* modal + toast */
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+.modal.on{display:flex}
+.sheet{background:#fff;border-radius:16px;width:min(720px,100%);max-height:92vh;overflow:auto;box-shadow:0 30px 80px -20px rgba(0,0,0,.5)}
+.sheet h3{margin:0;padding:18px 22px;border-bottom:1px solid var(--line);font-size:18px;display:flex;justify-content:space-between;align-items:center}
+.sheet .in{padding:18px 22px;display:grid;gap:12px}
+.sheet label{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px}
+.sheet input,.sheet select,.sheet textarea{width:100%;border:1.5px solid var(--line);border-radius:9px;padding:10px 12px;font:inherit;background:#fbfcfe}
+.sheet textarea{min-height:150px;resize:vertical}
+.sheet .row{display:grid;grid-template-columns:1fr 1fr 150px;gap:10px}
+@media(max-width:640px){.sheet .row{grid-template-columns:1fr}}
+.sheet .act{display:flex;justify-content:flex-end;gap:10px;padding:0 22px 20px}
+.xbtn{border:0;background:none;font-size:22px;color:var(--muted);line-height:1}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;padding:12px 18px;border-radius:12px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.25s;z-index:60;max-width:92vw}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+@media print{header .chips,.querybox,.act{display:none}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="head">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 32 32" fill="none" stroke="#7FD1F2" stroke-width="2.2"><path d="M16 5l9 3.4v7.6c0 5.3-3.7 9.1-9 10.9-5.3-1.8-9-5.6-9-10.9V8.4z"/><path d="M11.5 16l3.2 3.2 5.8-6.6"/></svg>
+        </div>
+        <div><h1>CyberRAG</h1><p>Evidence-verified cyber threat intelligence</p></div>
+      </div>
+      <div class="chips" id="chips" aria-label="System status">
+        <span class="chip"><i class="dot" id="d-ver"></i><span id="c-ver">Verifier…</span></span>
+        <span class="chip"><i class="dot" id="d-llm"></i><span id="c-llm">LLM…</span></span>
+        <span class="chip"><i class="dot ok"></i><span id="c-kg">Graph…</span></span>
+        <span class="chip"><i class="dot ok"></i><span id="c-corpus">Corpus…</span></span>
+      </div>
+    </div>
+    <div class="hero">
+      <h2>Is this threat claim actually supported by the reports?</h2>
+      <p>Ask about a threat actor, malware or target. CyberRAG retrieves evidence from 104 threat reports, checks that both entities appear together, verifies each passage with an NLI model, and tells you when the evidence is missing, hedged or out of date.</p>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="querybox" aria-label="Ask a question">
+    <div class="qrow">
+      <input id="q" type="text" autocomplete="off" spellcheck="false" placeholder="e.g. Does APT28 use Zebrocy?" aria-label="Threat claim to verify">
+      <button class="btn" id="go" type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <span>Verify claim</span>
+      </button>
+    </div>
+    <div class="qmeta">
+      <span class="lbl">Try a scenario <span style="text-transform:none;letter-spacing:0;font-weight:500">(keys 1–6)</span></span>
+      <button class="btn ghost" id="open-ingest" type="button" style="height:36px;padding:0 14px;font-size:13.5px">+ Add a report</button>
+    </div>
+    <div class="scn" id="scn"></div>
+  </section>
+
+  <main>
+    <div id="out">
+      <div class="placeholder">
+        <h3>Choose a scenario or type a claim</h3>
+        <div>Every verdict comes with the exact sentences, their sources and dates behind it.</div>
+        <div class="steps">
+          <span><b>1</b>Understand the claim</span><span><b>2</b>Retrieve passages</span><span><b>3</b>Entity gate</span><span><b>4</b>NLI verification</span><span><b>5</b>Resolve over time</span>
+        </div>
+      </div>
+    </div>
+    <div class="note">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5b6b82" stroke-width="2" style="flex:none;margin-top:2px"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.5"/></svg>
+      <div><b>How to read this.</b> NLI scores show how well a sentence aligns with the claim, not the probability that it is true. The evidence score is a simple rule over the evidence found, not a calibrated confidence. Extracted relations are automatic and unreviewed. Items marked <span class="tag sim" style="padding:1px 7px">Simulated</span> are demonstration records written for this demo, not real reports.</div>
+    </div>
+  </main>
+</div>
+
+<footer><div class="wrap">CyberRAG · runs locally, no data leaves this machine · Knowledge graph, retrieval and verification are shown exactly as the pipeline produced them.</div></footer>
+
+<!-- add report modal -->
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mt">
+  <div class="sheet">
+    <h3 id="mt">Add a report to this session <button class="xbtn" id="close-ingest" aria-label="Close">×</button></h3>
+    <div class="in">
+      <div style="color:var(--muted);font-size:13.5px">The report is added to the in-memory graph and search index for this session only. Nothing on disk changes. It is labelled as an analyst submission.</div>
+      <div><label for="u-pre">Start from an example</label>
+        <select id="u-pre"><option value="">— blank —</option></select></div>
+      <div class="row">
+        <div><label for="u-title">Title</label><input id="u-title" placeholder="Report title"></div>
+        <div><label for="u-src">Source</label><input id="u-src" placeholder="Publisher"></div>
+        <div><label for="u-date">Date</label><input id="u-date" type="date"></div>
+      </div>
+      <div><label for="u-text">Report text</label><textarea id="u-text" placeholder="Paste report text here…"></textarea></div>
+    </div>
+    <div class="act"><button class="btn ghost" id="cancel-ingest" type="button">Cancel</button><button class="btn" id="submit-ingest" type="button">Add to graph</button></div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="/static/vis-network.min.js"></script>
+<script>
+"use strict";
+/* ---------------- config ---------------- */
+const SCENARIOS = [
+  {k:"1", q:"Does APT28 use Zebrocy?",               t:"Corroborated",        c:"#1e7a47", d:"Several passages from one vendor confirm it."},
+  {k:"2", q:"Does APT28 target NATO?",               t:"Corroborated",        c:"#1e7a47", d:"Targeting stated in the same sentence."},
+  {k:"3", q:"Does Emotet use TrickBot?",             t:"Changes over time",   c:"#6a4c93", d:"Earlier support, later takedown report."},
+  {k:"4", q:"Does Lazarus target banks?",            t:"Hedged evidence",     c:"#9a5b00", d:"Only “might link” wording: tentative."},
+  {k:"5", q:"Does Sandworm use Cyclops Blink?",      t:"No evidence",         c:"#475569", d:"Not in the corpus, so it declines to answer."},
+  {k:"6", q:"Does Turla use Zebrocy?",               t:"Citation guard",      c:"#475569", d:"A footnote list is not evidence."}
+];
+const STATUS = {
+  VERIFIED:{label:"Verified",c:"--green",bg:"--green-bg",icon:"M5 13l4 4L19 7"},
+  TEMPORAL_SUPERSEDENCE:{label:"Superseded over time",c:"--purple",bg:"--purple-bg",icon:"M12 7v5l3 2M21 12a9 9 0 11-18 0 9 9 0 0118 0z"},
+  WEAK_SUPPORT:{label:"Weak support",c:"--amber",bg:"--amber-bg",icon:"M12 9v4M12 17v.5M10.3 4.2L2.8 17.5A2 2 0 004.5 20.5h15a2 2 0 001.7-3L13.7 4.2a2 2 0 00-3.4 0z"},
+  INSUFFICIENT_EVIDENCE:{label:"Insufficient evidence",c:"--slate",bg:"--slate-bg",icon:"M9 9a3 3 0 115 2c-1 .8-2 1.2-2 2.5M12 17v.5"},
+  CONTRADICTED:{label:"Contradicted",c:"--red",bg:"--red-bg",icon:"M6 6l12 12M18 6L6 18"},
+  CONFLICTING_EVIDENCE:{label:"Conflicting evidence",c:"--red",bg:"--red-bg",icon:"M6 6l12 12M18 6L6 18"}
+};
+const TYPE_COLOR = {ThreatActor:"#c8372d",Malware:"#6a4c93",Tool:"#c27a00",Technique:"#1a72a0",Organization:"#0f8a7a",Location:"#2e8b57",CVE:"#d9480f",Entity:"#64748b"};
+const HEDGE = /\b((?:might|may|could|possibly)\s+(?:be\s+)?(?:link(?:ed)?|connect(?:ed)?|associat(?:ed)?)|suspected|suspects|alleged|allegedly|unconfirmed|tentative(?:ly)?|purported(?:ly)?|speculated|speculation|believed\s+to\s+be)\b/gi;
+const PRESET_REPORTS = {
+  takedown:{title:"Europol / CISA advisory: Emotet infrastructure takedown",source:"Europol / CISA (Simulated)",date:"2021-05-20",text:"Following the global law enforcement disruption in January 2021, the Emotet infrastructure was seized. Telemetry confirms that Emotet no longer uses TrickBot payloads or dropper channels across enterprise networks."},
+  apt28:{title:"APT28 deploys Zebrocy against European governments and NATO",source:"Analyst submission (Simulated)",date:"2021-05-15",text:"The threat actor APT28 (also tracked as Fancy Bear) was observed deploying Zebrocy malware in targeted spear-phishing operations. The intrusion set specifically targeted NATO diplomatic entities and European government ministries."},
+  sandworm:{title:"Sandworm deploys Cyclops Blink",source:"Analyst submission (Simulated)",date:"2022-02-23",text:"The Russian state-sponsored threat group Sandworm deployed the Cyclops Blink modular framework. Telemetry confirms that Sandworm targeted energy sector networks in Ukraine to maintain persistent access."}
+};
+
+/* ---------------- helpers ---------------- */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const fmtDate = d => { if(!d) return "undated"; const x=new Date(d+"T00:00:00"); return isNaN(x)?d:x.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}); };
+const isSim = e => /simulated|demo-curated|^upload/i.test((e.source||"")+" "+(e.report_id||""));
+function cleanText(t){
+  return String(t||"").replace(/\[\[\d+\]\]\s*\(#\s*_\s*ftn(?:ref)?\d+\)/gi,"").replace(/(?:\*\s*){2,}/g," · ").replace(/(?:#\s*){2,}/g," ").replace(/-{3,}/g," ")
+    .replace(/\(\s*https?:\/\/\s*[^)]*\)/g,"").replace(/\s{2,}/g," ").trim();
+}
+function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("on");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("on"),4200)}
+
+/* ---------------- init ---------------- */
+function buildScenarios(){
+  $("scn").innerHTML = SCENARIOS.map((s,i)=>`
+    <button class="card-s" type="button" data-i="${i}" style="--c:${s.c}">
+      <div class="t"><span><span class="k">${s.k}</span>${esc(s.t)}</span></div>
+      <div class="q">${esc(s.q)}</div><div class="d">${esc(s.d)}</div>
+    </button>`).join("");
+  $("scn").querySelectorAll(".card-s").forEach(b=>b.addEventListener("click",()=>run(SCENARIOS[+b.dataset.i].q)));
+}
+async function loadHealth(){
+  try{
+    const h = await (await fetch("/api/health")).json();
+    const ok = h.verifier_status==="ready";
+    $("d-ver").className="dot "+(ok?"ok":"bad"); $("c-ver").textContent = ok?"NLI verifier ready (DeBERTa-v3)":"NLI verifier not loaded";
+    $("d-llm").className="dot "+(h.llm_connected?"ok":"warn"); $("c-llm").textContent = h.llm_connected?("LLM: "+h.active_model):"LLM offline · rule-based planner";
+    $("c-kg").textContent = `Graph: ${(h.indexed_entities||0).toLocaleString()} entities · ${(h.indexed_assertions||0).toLocaleString()} assertions`;
+    $("c-corpus").textContent = `Corpus: ${(h.indexed_segments||0).toLocaleString()} passages`;
+  }catch(e){ $("d-ver").className="dot bad"; $("c-ver").textContent="Server unreachable"; }
+}
+
+/* ---------------- run ---------------- */
+let busy=false;
+async function run(query){
+  query=(query||$("q").value).trim(); if(!query||busy) return;
+  $("q").value=query; busy=true; $("go").disabled=true;
+  try{history.replaceState(null,"","?q="+encodeURIComponent(query))}catch(e){}
+  const t0=Date.now();
+  $("out").innerHTML=`<div class="panel skeleton"><div class="running"><div class="spin"></div><span>Checking “${esc(query)}” <span id="el" class="mono" style="color:var(--muted);font-weight:500">0s</span></span></div><div style="margin-top:18px"><div class="sk" style="width:60%"></div><div class="sk" style="width:90%"></div><div class="sk" style="width:75%"></div></div></div>`;
+  const timer=setInterval(()=>{const e=$("el"); if(e) e.textContent=Math.round((Date.now()-t0)/1000)+"s"},500);
+  try{
+    const r=await fetch("/api/investigate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({query})});
+    if(!r.ok){ const j=await r.json().catch(()=>({})); throw new Error(j.detail||("Server error "+r.status)); }
+    render(await r.json(), (Date.now()-t0)/1000);
+  }catch(e){
+    $("out").innerHTML=`<div class="err"><b>Could not complete the check.</b> ${esc(e.message||e)}<br><span style="font-size:13px">Make sure the server is running (python demo/server.py) and try again.</span></div>`;
+  }finally{ clearInterval(timer); busy=false; $("go").disabled=false; }
+}
+
+/* ---------------- render ---------------- */
+function parseEntities(d){
+  const names=new Set();
+  (d.matched_entities||[]).forEach(m=>m.name&&names.add(m.name));
+  const s=(d.execution_trace||[]).find(x=>/Entities:/.test(x.tool_output_summary||""));
+  if(s){const m=/Entities:\s*\[(.*?)\]/.exec(s.tool_output_summary); if(m) m[1].split(",").forEach(x=>{x=x.replace(/['"]/g,"").trim(); if(x) names.add(x)});}
+  return [...names].filter(n=>n.length>2);
+}
+function claimParts(d){
+  const m=/Brief:\s*`([^`]+)`/.exec(d.narrative||"");
+  const txt=m?m[1]:d.query; const r=/^(.*?)\s+(USES_TECHNIQUE|USES|TARGETS|EXPLOITS)\s+(.*)$/.exec(txt);
+  return r?{s:r[1],r:r[2],o:r[3]}:{s:txt,r:"",o:""};
+}
+function explain(d){
+  const cr=d.conflict_resolution||{}; const sup=d.supporting_evidence.length, con=d.contradicting_evidence.length;
+  switch(d.status){
+    case "VERIFIED": return `${sup} passage${sup>1?"s":""} from ${d.source_diversity} publisher${d.source_diversity>1?"s":""} state this, and none contradict it.`;
+    case "TEMPORAL_SUPERSEDENCE": return `Earlier reports support the claim, but a report ${cr.delta_days?cr.delta_days+" days":"months"} later contradicts it. This reads as a change over time rather than a factual error: the older intelligence is treated as superseded.`;
+    case "WEAK_SUPPORT": return `The only supporting evidence is hedged (for example “might link” or “suspected”). Treat it as tentative publisher speculation, not confirmed fact.`;
+    case "INSUFFICIENT_EVIDENCE": return `No passage in the corpus mentions both entities in the same sentence, so the system declines to answer instead of guessing.`;
+    case "CONTRADICTED": return `${con} passage${con>1?"s":""} contradict the claim and none support it.`;
+    default: return `The evidence both supports and contradicts the claim. Review the passages below.`;
+  }
+}
+function highlight(text, names){
+  let h=esc(cleanText(text));
+  [...names].sort((a,b)=>b.length-a.length).forEach(n=>{
+    const re=new RegExp("\\b("+esc(n).replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")\\b","gi"); h=h.replace(re,"<mark>$1</mark>");
+  });
+  return h.replace(HEDGE,m=>`<mark class="hedge" title="Hedging wording">${m}</mark>`);
+}
+function evCard(e,kind,names,idx){
+  const col = kind==="s" ? "--green" : "--red";
+  const lab = kind==="s" ? "Supports" : "Contradicts";
+  const p = kind==="s" ? e.p_entail : e.p_contra;
+  const txt=cleanText(e.text); const long=txt.length>330;
+  const short=txt.slice(0,330).replace(/\s+\S*$/,"")+"…";
+  return `<div class="ev" style="--c:var(${col})" data-k="${kind}" data-i="${idx}">
+    <div class="top"><div><span class="src">${esc(e.source||"Unknown source")}</span> <span class="date">· ${esc(fmtDate(e.publication_date))}</span> ${isSim(e)?'<span class="tag sim">Simulated</span>':""}</div>
+      <span class="pill" style="background:var(${col==="--green"?"--green-bg":"--red-bg"});color:var(${col})">${lab}</span></div>
+    <div class="txt">${long?highlight(short,names):highlight(e.text,names)}</div>
+    ${long?'<button class="more" type="button">Show full passage</button>':""}
+    <div class="foot"><div class="bar" title="NLI score"><i style="width:${Math.round((p||0)*100)}%;--c:var(${col})"></i></div><span class="mono" style="font-size:12px;color:var(--muted)">NLI ${(p||0).toFixed(2)}</span>
+      <span class="rid mono" title="${esc(e.segment_id||"")}">${esc(e.segment_id||e.report_id||"")}</span></div></div>`;
+}
+function render(d,secs){
+  const meta=STATUS[d.status]||STATUS.CONTRADICTED; const cp=claimParts(d); const names=parseEntities(d);
+  const sup=d.supporting_evidence||[], con=d.contradicting_evidence||[], cr=d.conflict_resolution;
+  const score=d.consensus_evidence_score??d.confidence_score;
+  const gate=(d.execution_trace||[]).find(s=>s.state==="EVIDENCE_INSPECTION");
+  const hops=(d.state_history||[]).filter(s=>s==="RETRY_EXPANSION").length;
+  const noEv=d.status==="INSUFFICIENT_EVIDENCE";
+  let html=`
+  <section class="panel verdict" style="--c:var(${meta.c});--bg2:var(${meta.bg})">
+    <div class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="${meta.icon}"/></svg><span class="st">${esc(meta.label.toUpperCase())}</span></div>
+    <div>
+      <div class="claim">${esc(cp.s)} <span class="rel">${esc(cp.r.replace("_"," "))}</span> ${esc(cp.o)}</div>
+      <div class="why">${esc(explain(d))}</div>
+    </div>
+    <div class="metrics">
+      <div class="metric"><div class="v">${sup.length}<span style="font-size:15px;color:var(--muted);font-weight:600"> / ${con.length}</span></div><div class="l">Support / Contra</div><small>passages</small></div>
+      <div class="metric"><div class="v">${noEv?"—":d.source_diversity}</div><div class="l">Publishers</div><small>${noEv?"none found":"independent"}</small></div>
+      <div class="metric" title="A simple rule over the evidence found. It is not a calibrated probability."><div class="v">${noEv?"—":Math.round(score*100)+"%"}</div><div class="l">Evidence score</div><small>rule-based</small></div>
+    </div>
+  </section>`;
+
+  const dated=[...sup.map(e=>({d:e.publication_date,k:"s"})),...con.map(e=>({d:e.publication_date,k:"c"}))].filter(x=>x.d).sort((a,b)=>a.d<b.d?-1:1);
+  if(dated.length>=2 && con.length && dated[0].d!==dated[dated.length-1].d){
+    const t0=new Date(dated[0].d).getTime(), t1=new Date(dated[dated.length-1].d).getTime(), W=t1-t0;
+    const pos=x=>((new Date(x).getTime()-t0)/W*100);
+    const show=[]; let lastLab=-100;
+    dated.forEach((x,i)=>{const p=pos(x.d); const ok=(p-lastLab)>=13; show.push(ok); if(ok) lastLab=p;});
+    const li=dated.length-1; if(!show[li]){ for(let j=li-1;j>=0;j--){ if(show[j]){ if(pos(dated[li].d)-pos(dated[j].d)<13) show[j]=false; break; } } show[li]=true; }
+    const pts=dated.map((x,i)=>`<div class="pt" title="${esc(fmtDate(x.d))}" style="left:${pos(x.d).toFixed(2)}%;--c:var(${x.k==="s"?"--green":"--red"})">${show[i]?`<span>${esc(fmtDate(x.d))}</span>`:""}</div>`).join("");
+    const firstS=dated.find(x=>x.k==="s"), lastC=[...dated].reverse().find(x=>x.k==="c");
+    let span="";
+    if(firstS&&lastC&&lastC.d>firstS.d&&cr&&cr.delta_days){ span=`<div class="span" style="left:${pos(firstS.d).toFixed(2)}%;width:${(pos(lastC.d)-pos(firstS.d)).toFixed(2)}%"><em>${cr.delta_days} days apart</em></div>`; }
+    html+=`<section class="panel" style="margin-top:18px"><h3>Evidence over time</h3><div class="timeline"><div class="axis">${span}${pts}</div></div>
+      <div class="legend"><span><i style="background:var(--green)"></i>Supporting report</span><span><i style="background:var(--red)"></i>Contradicting report</span>${cr&&cr.threshold?`<span>Gap needed to call it “superseded”: ${cr.threshold} days</span>`:""}</div></section>`;
+  }
+
+  html+=`<div class="grid"><div>
+    <section class="panel"><h3><span>Evidence</span><div class="tabs"><button class="tab on" data-t="s" type="button">Supporting<span class="n">${sup.length}</span></button><button class="tab" data-t="c" type="button">Contradicting<span class="n">${con.length}</span></button></div></h3>
+      <div class="body" id="evbody"></div></section>
+    <section class="panel" style="margin-top:18px"><h3>Analyst brief <span style="text-transform:none;letter-spacing:0;font-weight:500">generated from the evidence</span></h3><div class="body brief" id="brief"></div></section>
+  </div><div>
+    <section class="panel"><h3>Knowledge graph <span style="text-transform:none;letter-spacing:0;font-weight:500">around the claim</span></h3><div class="body"><div id="graph"></div><div class="glegend" id="glegend"></div><div class="gnote">Relations are extracted automatically from reports and are unreviewed. Drag nodes, scroll to zoom.</div></div></section>
+    <section class="panel" style="margin-top:18px"><h3>How the system decided <span style="text-transform:none;letter-spacing:0;font-weight:500">${secs.toFixed(1)}s</span></h3><div class="body" id="trace"></div></section>
+  </div></div>`;
+  $("out").innerHTML=html;
+
+  const showEv=k=>{
+    const arr=k==="s"?sup:con;
+    $("evbody").innerHTML = arr.length ? arr.map((e,i)=>evCard(e,k,names,i)).join("") :
+      `<div class="empty">${k==="s"?(noEv?"No passage mentions both entities in the same sentence.":"No supporting passages."):"No contradicting passages."}${noEv&&gate?`<div style="margin-top:8px;font-size:13px">${esc(gate.decision_outcome||gate.tool_output_summary||"")}</div>`:""}</div>`;
+    document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on",b.dataset.t===k));
+    document.querySelectorAll("#evbody .more").forEach(btn=>btn.addEventListener("click",()=>{
+      const card=btn.closest(".ev"), e=(card.dataset.k==="s"?sup:con)[+card.dataset.i], t=card.querySelector(".txt");
+      const open=btn.dataset.o==="1"; const full=cleanText(e.text); const short=full.slice(0,330).replace(/\s+\S*$/,"")+"…";
+      t.innerHTML=highlight(open?short:e.text,names); btn.dataset.o=open?"0":"1"; btn.textContent=open?"Show full passage":"Show less";
+    }));
+  };
+  document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>showEv(b.dataset.t)));
+  showEv(sup.length||!con.length?"s":"c");
+
+  $("brief").innerHTML=md(d.narrative||"");
+  renderGraph(d.subgraph||{nodes:[],edges:[]},d.matched_entities||[]);
+  renderTrace(d,hops);
+}
+
+/* markdown-lite (input is escaped first) */
+function md(src){
+  src=String(src||"").replace(/\[([^|\]\n]+)\|\s*([^|\]\n]+)\|\s*[^\]\n]*\]/g,"[$1 · $2]").replace(/Confidence Score/g,"Evidence Score");
+  const lines=esc(src).split("\n"); let out="", ul=false;
+  const inl=s=>s.replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/`([^`]+)`/g,"<code>$1</code>");
+  const closeUl=()=>{if(ul){out+="</ul>";ul=false}};
+  for(let l of lines){
+    l=l.replace(/\r$/,"");
+    if(/^####\s+/.test(l)){closeUl();out+=`<h4>${inl(l.replace(/^####\s+/,""))}</h4>`}
+    else if(/^###\s+/.test(l)){closeUl();out+=`<h3>${inl(l.replace(/^###\s+/,""))}</h3>`}
+    else if(/^\s*&gt;\s?/.test(l)){closeUl();out+=`<blockquote>${inl(l.replace(/^\s*&gt;\s?/,""))}</blockquote>`}
+    else if(/^\s*[-*]\s+/.test(l)){if(!ul){out+="<ul>";ul=true}out+=`<li>${inl(l.replace(/^\s*[-*]\s+/,""))}</li>`}
+    else if(l.trim()===""){closeUl()}
+    else{closeUl();out+=`<p style="margin:6px 0">${inl(l)}</p>`}
+  }
+  closeUl(); return out||'<div class="empty">No brief.</div>';
+}
+
+/* graph */
+let net=null;
+function renderGraph(sg,matched){
+  const mids=new Set(matched.map(m=>m.id));
+  const nodes=(sg.nodes||[]).map(n=>{const t=n.type||"Entity", col=TYPE_COLOR[t]||TYPE_COLOR.Entity, m=mids.has(n.id)||n.group==="matched_entity";
+    return {id:n.id,label:n.label,title:t,shape:"dot",size:m?24:14,color:{background:col,border:m?"#12203a":col,highlight:{background:col,border:"#12203a"}},borderWidth:m?3:1,font:{size:m?15:12,color:"#0f172a",face:"Segoe UI"}}});
+  const seen=new Set(), edges=[]; (sg.edges||[]).forEach(e=>{const id=e.from+"|"+e.label+"|"+e.to; if(seen.has(id))return; seen.add(id);
+    edges.push({from:e.from,to:e.to,label:(e.label||"").replace(/_/g," "),arrows:"to",color:{color:"#94a3b8",highlight:"#1a72a0"},font:{size:10.5,color:"#475569",strokeWidth:3,strokeColor:"#fbfcfe",align:"middle"},smooth:{type:"dynamic"},width:1.5})});
+  const box=$("graph");
+  if(!nodes.length){box.innerHTML='<div class="empty" style="padding-top:140px">No graph entities matched this claim.</div>';$("glegend").innerHTML="";return}
+  if(net){net.destroy();net=null}
+  net=new vis.Network(box,{nodes:new vis.DataSet(nodes),edges:new vis.DataSet(edges)},{physics:{barnesHut:{gravitationalConstant:-5200,springLength:120,springConstant:.04},stabilization:{iterations:160}},interaction:{hover:true,tooltipDelay:150}});
+  net.once("stabilizationIterationsDone",()=>{net.setOptions({physics:false});net.fit({animation:{duration:400}})});
+  const types=[...new Set(nodes.map(n=>n.title))];
+  $("glegend").innerHTML=types.map(t=>`<span><i style="background:${TYPE_COLOR[t]||TYPE_COLOR.Entity}"></i>${esc(t)}</span>`).join("")+`<span><i style="background:#fff;border:2px solid #12203a"></i>In your claim</span>`;
+}
+
+/* trace */
+function renderTrace(d,hops){
+  const sh=(d.state_history||[]); const labels={QUERY_ANALYSIS:"Understand",RETRIEVAL:"Retrieve",EVIDENCE_INSPECTION:"Entity gate",RETRY_EXPANSION:"Retry wider",VERIFICATION:"NLI verify",CONFLICT_RESOLUTION:"Resolve over time",ANSWER_GENERATION:"Brief",INSUFFICIENT_EVIDENCE:"Stop: no evidence"};
+  const pipe=sh.map((s,i)=>`<span class="s ${s==="RETRY_EXPANSION"?"retry":(s==="INSUFFICIENT_EVIDENCE"?"end":"")}">${esc(labels[s]||s)}</span>${i<sh.length-1?'<span class="a">›</span>':""}`).join("");
+  const steps=(d.execution_trace||[]).map(s=>`<details class="step"><summary><b class="n">${esc(s.step_index)}</b><span class="st">${esc((labels[s.state]||s.state).toUpperCase())}</span><span style="color:#334155">${esc(s.decision_outcome||"")}</span></summary>
+    <div class="in">${esc(s.action||s.thought||"")}${s.retry_or_termination_reason?`<div style="margin-top:6px;color:var(--amber)">${esc(s.retry_or_termination_reason)}</div>`:""}<div class="tool mono">${esc(s.tool_name||"")}${s.tool_output_summary?" → "+esc(s.tool_output_summary):""}</div></div></details>`).join("");
+  $("trace").innerHTML=`<div class="pipe">${pipe}</div>${hops?`<div style="font-size:13px;color:var(--muted);margin:-4px 0 10px">Widened the search ${hops} time${hops>1?"s":""} before deciding.</div>`:""}${steps}`;
+}
+
+/* ---------------- add report ---------------- */
+function openModal(){$("modal").classList.add("on");setTimeout(()=>$("u-text").focus(),50)}
+function closeModal(){$("modal").classList.remove("on")}
+function fillPreset(k){const r=PRESET_REPORTS[k]; if(!r)return; $("u-title").value=r.title;$("u-src").value=r.source;$("u-date").value=r.date;$("u-text").value=r.text}
+async function submitReport(){
+  const text=$("u-text").value.trim(); if(!text){toast("Paste some report text first.");return}
+  const b=$("submit-ingest"); b.disabled=true; b.textContent="Adding…";
+  try{
+    const r=await fetch("/api/ingest_report",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:$("u-title").value.trim()||"Uploaded CTI report",source:$("u-src").value.trim()||"Analyst submission",publication_date:$("u-date").value||"2024-01-01",text})});
+    const j=await r.json(); if(!r.ok) throw new Error(j.detail||r.status);
+    closeModal(); toast(`Added “${j.title}”: ${j.extracted_entities} entities, ${j.extracted_relations} relations, +${j.new_nodes_added} graph nodes. Now ask a question about it.`);
+    loadHealth();
+  }catch(e){toast("Could not add the report: "+(e.message||e))}
+  finally{b.disabled=false;b.textContent="Add to graph"}
+}
+
+/* ---------------- wire up ---------------- */
+buildScenarios(); loadHealth();
+Object.entries(PRESET_REPORTS).forEach(([k,v])=>{const o=document.createElement("option");o.value=k;o.textContent=v.title;$("u-pre").appendChild(o)});
+$("u-pre").addEventListener("change",e=>fillPreset(e.target.value));
+$("go").addEventListener("click",()=>run());
+$("q").addEventListener("keydown",e=>{if(e.key==="Enter")run()});
+$("open-ingest").addEventListener("click",openModal);
+$("close-ingest").addEventListener("click",closeModal);
+$("cancel-ingest").addEventListener("click",closeModal);
+$("submit-ingest").addEventListener("click",submitReport);
+$("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape")closeModal();
+  if(document.activeElement===$("q")||$("modal").classList.contains("on")||e.ctrlKey||e.metaKey||e.altKey)return;
+  const i=parseInt(e.key,10); if(i>=1&&i<=SCENARIOS.length)run(SCENARIOS[i-1].q);
+});
+const qp=new URLSearchParams(location.search).get("q"); if(qp){$("q").value=qp;run(qp)}
+</script>
+</body>
+</html>

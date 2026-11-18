@@ -105,17 +105,34 @@ class GraphRAGPipeline:
         return evidence_items
 
     def _extract_subject_object(self, claim: str) -> Tuple[Optional[str], Optional[str]]:
-        """Extract subject and object strings from a relation claim."""
+        """Extract subject and object strings from a relation claim or natural language query."""
         claim_str = str(claim).strip()
-        # Strictly match only the four known CTI relation types in capitals
+        # 1. Match standard uppercase relation assertions
         m = re.match(
             r"^\s*(.+?)\s+(?:USES|TARGETS|EXPLOITS|USES_TECHNIQUE)\s+(.+?)\.?\s*$",
             claim_str,
         )
         if m:
-            subj = m.group(1).strip()
-            obj = m.group(2).strip().rstrip(".")
-            return subj, obj
+            return m.group(1).strip(), m.group(2).strip().rstrip(".")
+
+        # 2. Match natural language questions or statements
+        nl_match = re.match(
+            r"^(?:Does|Did|Has|Can|Is)?\s*(.+?)\s+(?:uses?|used|using|targets?|targeted|targeting|exploits?|exploited|exploiting|never\s+targeted|no\s+longer\s+uses?)\s+(.+?)\??\.?\s*$",
+            claim_str,
+            re.IGNORECASE,
+        )
+        if nl_match:
+            return nl_match.group(1).strip(), nl_match.group(2).strip().rstrip("?. ")
+
+        # 3. Fallback: match known entities from graph retriever entity lookup
+        if hasattr(self, "retriever") and hasattr(self.retriever, "graph"):
+            try:
+                matched = self.retriever.graph.match_entities(claim_str)
+                if len(matched) >= 2:
+                    return matched[0][0], matched[1][0]
+            except Exception:
+                pass
+
         return None, None
 
     def _get_entity_terms(self, name: str) -> set[str]:

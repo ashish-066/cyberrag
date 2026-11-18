@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "whentrue-cti": {
+      "command": "python",
+      "args": ["<REPO>/mcp_server/server.py", "--transport", "stdio"],
+      "env": { "CTI_OFFLINE": "1", "PYTHONIOENCODING": "utf-8" }
+    }
+  }
+}

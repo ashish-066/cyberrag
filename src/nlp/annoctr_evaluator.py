@@ -169,8 +169,11 @@ class AnnoCTREvaluator:
     @staticmethod
     def _find_first_existing(candidates: List[Path]) -> Path:
         for p in candidates:
-            if p.exists():
-                return p
+            try:
+                if p.exists():
+                    return p
+            except (PermissionError, OSError):
+                continue
         return candidates[0]
 
     def load_sentences_from_file(self, file_path: Path) -> List[Dict[str, Any]]:
@@ -400,6 +403,11 @@ class AnnoCTREvaluator:
                 "boundary_false_positives": hybrid_res["false_positives_sample"],
             },
         }
+
+        # Export report to cache path
+        cache_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(cache_file, "w", encoding="utf-8") as f:
+            json.dump(report, f, indent=2)
 
         # Print clean terminal report
         self._print_terminal_summary(report)

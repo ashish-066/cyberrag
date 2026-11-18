@@ -1,6 +1,6 @@
 """Master Test Runner for CyberRAG.
 
-Discovers and executes all 60 unit tests across all test suites:
+Discovers and executes all 78 unit and integration tests across all 16 test suites:
 - test_preprocessor.py: Indicator refanging, unicode normalization, segmentation provenance
 - test_ner.py: Entity normalization and gazetteer extraction
 - test_relation_extractor.py: Typed relationship extraction
@@ -15,10 +15,17 @@ Discovers and executes all 60 unit tests across all test suites:
 - test_integrated_verification.py: End-to-end fused GraphRAG verification
 - test_negative_assertions_temporal.py: Negative assertion provenance and temporal supersedence
 - test_v2_relation_regression.py: Regression testing for vendor and spatial trigger suppression
+- test_retrieval_agent.py: Bounded ReAct loop, 8-state machine, and sufficiency gate
+- test_dashboard_agent.py: UI visualization data contract and execution trace
+- test_mcp_verification_service.py: VerificationService end-to-end, STIX 2.1 export, and whentrue-cti MCP server tool contracts
 """
 
+import os
 import sys
 import unittest
+
+os.environ["HF_HUB_OFFLINE"] = "1"
+os.environ["TRANSFORMERS_OFFLINE"] = "1"
 
 if __name__ == "__main__":
     loader = unittest.TestLoader()
