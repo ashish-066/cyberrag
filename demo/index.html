@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CyberRAG — CTI Evidence Verification Workbench</title>
+  <!-- Fully Offline Bundled Frontend Assets (Zero External CDN / Network Dependencies) -->
+  <link rel="stylesheet" href="/static/vis-network.css">
+  <script src="/static/tailwind.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            cyberDark: '#080d1a',
+            cyberCard: '#0f172a',
+            cyberBorder: '#1e293b',
+            cyberGreen: '#10b981',
+            cyberCyan: '#06b6d4',
+            cyberAmber: '#f59e0b',
+            cyberRed: '#ef4444',
+            cyberPurple: '#a855f7',
+          },
+          fontFamily: {
+            mono: ['JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', 'Courier New', 'monospace'],
+            sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Local Vis.js & Lucide Assets -->
+  <script type="text/javascript" src="/static/vis-network.min.js"></script>
+  <script src="/static/lucide.min.js"></script>
+  <style>
+    body {
+      background-color: #080d1a;
+      color: #e2e8f0;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(51, 65, 85, 0.4);
+    }
+
+    .pulse-dot {
+      box-shadow: 0 0 10px #10b981;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0b1120;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Header & Telemetry -->
+  <header class="border-b border-cyberBorder bg-[#0a1020]/90 backdrop-blur sticky top-0 z-50 px-6 py-3.5">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+          <i data-lucide="shield-check" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="text-xl font-bold tracking-tight text-white font-mono">CyberRAG</span>
+            <span class="px-2 py-0.5 text-xs font-semibold rounded bg-cyan-950 text-cyan-400 border border-cyan-800 font-mono">v3.0</span>
+          </div>
+          <p class="text-xs text-slate-400">CTI Evidence Verification Workbench</p>
+        </div>
+      </div>
+
+      <!-- Telemetry Chips -->
+      <div class="flex flex-wrap items-center gap-2 text-xs font-mono">
+        <div class="flex items-center space-x-1.5 px-3 py-1.5 rounded-md bg-slate-900 border border-slate-800">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse pulse-dot"></span>
+          <span class="text-slate-400">LLM Reasoner:</span>
+          <span id="telemetry-llm" class="text-slate-400 font-medium">checking...</span>
+        </div>
+        <div class="flex items-center space-x-1.5 px-3 py-1.5 rounded-md bg-slate-900 border border-slate-800">
+          <span id="dot-verifier" class="w-2 h-2 rounded-full bg-cyan-400"></span>
+          <span class="text-slate-400">NLI Verifier:</span>
+          <span id="telemetry-verifier" class="text-cyan-300 font-medium">DeBERTa-v3-base</span>
+        </div>
+        <div class="flex items-center space-x-1.5 px-3 py-1.5 rounded-md bg-slate-900 border border-slate-800">
+          <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+          <span class="text-slate-400">Knowledge Graph:</span>
+          <span id="telemetry-kg" class="text-purple-300 font-medium">1,400 Ent · 329 Rel</span>
+        </div>
+        <div class="flex items-center space-x-1.5 px-3 py-1.5 rounded-md bg-slate-900 border border-slate-800">
+          <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+          <span class="text-slate-400">Corpus:</span>
+          <span id="telemetry-corpus" class="text-amber-300 font-medium">5,991 Segments (104 Rpts)</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
+
+    <!-- Search & Scenario Selector -->
+    <section class="glass-panel rounded-xl p-5 shadow-2xl relative overflow-hidden">
+      <div class="absolute -right-20 -top-20 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <label class="text-sm font-medium text-slate-300 flex items-center space-x-2">
+            <i data-lucide="crosshair" class="w-4 h-4 text-cyan-400"></i>
+            <span>CTI Hypothesis / Threat Query</span>
+          </label>
+          <div class="flex items-center space-x-3">
+            <button 
+              onclick="toggleUploadModal()"
+              class="px-3 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs text-cyan-300 border border-cyan-800 flex items-center space-x-1.5 font-mono transition"
+            >
+              <i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i>
+              <span>Ingest Custom Report</span>
+            </button>
+            <span class="text-xs text-slate-500 font-mono">Bounded verification workflow</span>
+          </div>
+        </div>
+
+        <div class="flex gap-3">
+          <div class="relative flex-1">
+            <input 
+              id="query-input" 
+              type="text" 
+              value="Does Emotet target banking organizations?"
+              placeholder="Enter CTI hypothesis e.g. Does Sandworm use Cyclops Blink?"
+              class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 font-mono transition"
+            />
+          </div>
+          <button 
+            id="btn-investigate" 
+            onclick="triggerInvestigation()"
+            class="px-6 py-3 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-medium text-sm rounded-lg shadow-lg shadow-cyan-900/30 flex items-center space-x-2 transition cursor-pointer"
+          >
+            <i data-lucide="cpu" class="w-4 h-4"></i>
+            <span>Verify</span>
+          </button>
+        </div>
+
+        <!-- Scenario Pills -->
+        <div class="pt-2">
+          <span class="text-xs text-slate-400 font-mono block mb-2">Curated Evaluation Scenarios & Presets:</span>
+          <div class="flex flex-wrap gap-2">
+            <button 
+              onclick="setScenario('Does Emotet target banking organizations?')" 
+              class="scenario-pill px-3 py-1.5 rounded-md text-xs font-mono bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 hover:border-emerald-500/50 flex items-center space-x-1.5 transition"
+            >
+              <span class="text-emerald-400">●</span>
+              <span>1. Verified Attribution</span>
+              <span class="text-slate-500 text-[10px]">(Emotet &rarr; Banking)</span>
+            </button>
+
+            <button 
+              onclick="setScenario('Does APT28 use Zebrocy?')" 
+              class="scenario-pill px-3 py-1.5 rounded-md text-xs font-mono bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 hover:border-emerald-500/50 flex items-center space-x-1.5 transition"
+            >
+              <span class="text-emerald-400">●</span>
+              <span>2. Multi-Vendor Entailment</span>
+              <span class="text-slate-500 text-[10px]">(APT28 &rarr; Zebrocy)</span>
+            </button>
+
+            <button 
+              onclick="setScenario('Does Emotet use TrickBot?')" 
+              class="scenario-pill px-3 py-1.5 rounded-md text-xs font-mono bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 hover:border-purple-500/50 flex items-center space-x-1.5 transition"
+            >
+              <span class="text-purple-400">●</span>
+              <span>3. Conflicting Evidence</span>
+              <span class="text-slate-500 text-[10px]">(Emotet &rarr; TrickBot)</span>
+            </button>
+
+            <button 
+              onclick="setScenario('Does Sandworm use Cyclops Blink?')" 
+              class="scenario-pill px-3 py-1.5 rounded-md text-xs font-mono bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 hover:border-amber-500/50 flex items-center space-x-1.5 transition"
+            >
+              <span class="text-amber-400">●</span>
+              <span>4. Zero-Corpus Guard</span>
+              <span class="text-slate-500 text-[10px]">(Sandworm &rarr; Cyclops Blink)</span>
+            </button>
+
+            <button 
+              onclick="setScenario('Does FIN7 target hospitality?')" 
+              class="scenario-pill px-3 py-1.5 rounded-md text-xs font-mono bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 hover:border-cyan-500/50 flex items-center space-x-1.5 transition"
+            >
+              <span class="text-cyan-400">●</span>
+              <span>5. Not in Corpus</span>
+              <span class="text-slate-500 text-[10px]">(FIN7 &rarr; Hospitality)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Loading State -->
+    <div id="loading-spinner" class="hidden glass-panel rounded-xl p-12 text-center space-y-4">
+      <div class="inline-block relative">
+        <div class="w-16 h-16 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin"></div>
+        <div class="w-10 h-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin absolute inset-3" style="animation-direction: reverse;"></div>
+      </div>
+      <div>
+        <h3 class="text-lg font-semibold text-white">Verification running</h3>
+        <p id="loading-status-text" class="text-sm text-cyan-400 font-mono mt-1">Running plan, retrieve, gate, NLI, conflict check...</p>
+      </div>
+    </div>
+
+    <!-- Results Section -->
+    <div id="results-container" class="space-y-6">
+
+      <!-- Status & Top Metric Banner -->
+      <section class="glass-panel rounded-xl p-5 border-l-4" id="metric-banner">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center space-x-4">
+            <div id="badge-status" class="px-4 py-2 rounded-lg text-sm font-bold font-mono uppercase tracking-wider flex items-center space-x-2 bg-emerald-950 text-emerald-400 border border-emerald-800">
+              <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+              <span id="text-status">VERIFIED</span>
+            </div>
+            <div>
+              <div class="text-xs text-slate-400 font-mono">Verdict</div>
+              <div id="text-hypothesis" class="text-base font-semibold text-white font-mono">Emotet TARGETS banking</div>
+            </div>
+          </div>
+
+          <div class="flex items-center space-x-6 text-center font-mono">
+            <div>
+              <div class="text-xs text-slate-400">Support tier</div>
+              <div id="text-confidence" class="text-xl font-bold text-emerald-400">-</div>
+            </div>
+            <div class="h-8 w-px bg-slate-800"></div>
+            <div>
+              <div class="text-xs text-slate-400">Source Diversity</div>
+              <div id="text-diversity" class="text-xl font-bold text-cyan-400">2 Vendors</div>
+            </div>
+            <div class="h-8 w-px bg-slate-800"></div>
+            <div>
+              <div class="text-xs text-slate-400">Evidence Gate</div>
+              <div id="text-gate" class="text-xs font-semibold px-2 py-1 mt-1 rounded bg-slate-800 text-slate-300">PROBATIVE CO-OCCURRENCE</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3-Column Workbench Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Column 1: Workflow decision flow (4 Cols) -->
+        <div class="lg:col-span-4 space-y-4">
+          <div class="glass-panel rounded-xl p-4 flex items-center justify-between">
+            <h3 class="text-sm font-semibold text-white flex items-center space-x-2">
+              <i data-lucide="git-commit" class="w-4 h-4 text-cyan-400"></i>
+              <span>Workflow trace</span>
+            </h3>
+            <span id="step-count-badge" class="px-2 py-0.5 text-xs rounded bg-slate-800 text-slate-400 font-mono">5 Steps</span>
+          </div>
+
+          <!-- Step Trace Cards List -->
+          <div id="trace-list" class="space-y-3 max-h-[700px] overflow-y-auto pr-1">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Column 2: Grounded Synthesis & Evidence Inspector (5 Cols) -->
+        <div class="lg:col-span-5 space-y-6">
+
+          <!-- Grounded Executive Brief -->
+          <div class="glass-panel rounded-xl p-5 space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 class="text-sm font-semibold text-white flex items-center space-x-2">
+                <i data-lucide="file-text" class="w-4 h-4 text-emerald-400"></i>
+                <span>Grounded CTI Executive Report</span>
+              </h3>
+              <span class="text-[10px] text-slate-400 font-mono">Evidence brief</span>
+            </div>
+            <div id="narrative-content" class="text-sm leading-relaxed text-slate-300 font-sans space-y-2 whitespace-pre-wrap">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Evidence Provenance Cards -->
+          <div class="glass-panel rounded-xl p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 class="text-sm font-semibold text-white flex items-center space-x-2">
+                <i data-lucide="database" class="w-4 h-4 text-purple-400"></i>
+                <span>Probative Evidence Provenance</span>
+              </h3>
+              <span id="evidence-count-badge" class="text-xs text-purple-400 font-mono">2 Passages</span>
+            </div>
+
+            <div id="evidence-list" class="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Column 3: Threat Knowledge Graph & Verification Radar (3 Cols) -->
+        <div class="lg:col-span-3 space-y-6">
+
+          <!-- Knowledge Graph View -->
+          <div class="glass-panel rounded-xl p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-semibold text-white flex items-center space-x-2">
+                <i data-lucide="network" class="w-4 h-4 text-cyan-400"></i>
+                <span>Knowledge Graph Subgraph</span>
+              </h3>
+              <span class="text-[10px] text-slate-500 font-mono">1-Hop Traversal</span>
+            </div>
+            <div id="graph-container" class="w-full h-64 bg-slate-950/80 rounded-lg border border-slate-800 relative">
+              <!-- Vis.js canvas injected here -->
+            </div>
+            <div class="text-[10px] text-slate-400 flex justify-between font-mono px-1">
+              <span>● Target Entity</span>
+              <span>● Neighbor Node</span>
+              <span>&rarr; Directed Edge</span>
+            </div>
+          </div>
+
+          <!-- DeBERTa NLI Verification Meters -->
+          <div class="glass-panel rounded-xl p-4 space-y-4">
+            <h3 class="text-sm font-semibold text-white flex items-center space-x-2">
+              <i data-lucide="bar-chart-2" class="w-4 h-4 text-emerald-400"></i>
+              <span>DeBERTa NLI Softmax</span>
+            </h3>
+
+            <div class="space-y-3 font-mono text-xs">
+              <div>
+                <div class="flex justify-between text-slate-300 mb-1">
+                  <span>Entailment</span>
+                  <span id="meter-val-entail" class="text-emerald-400 font-bold">0.9859</span>
+                </div>
+                <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden">
+                  <div id="meter-bar-entail" class="bg-emerald-500 h-2 rounded-full" style="width: 98.6%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-slate-300 mb-1">
+                  <span>Contradiction</span>
+                  <span id="meter-val-contra" class="text-red-400 font-bold">0.0051</span>
+                </div>
+                <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden">
+                  <div id="meter-bar-contra" class="bg-red-500 h-2 rounded-full" style="width: 0.5%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-slate-300 mb-1">
+                  <span>Neutral</span>
+                  <span id="meter-val-neutral" class="text-slate-400 font-bold">0.0090</span>
+                </div>
+                <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden">
+                  <div id="meter-bar-neutral" class="bg-slate-500 h-2 rounded-full" style="width: 0.9%"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-800 text-[11px] text-slate-400">
+              <p>Model: <code class="text-cyan-400">nli-deberta-v3-base</code></p>
+              <p class="mt-1">Evaluates factual textual entailment between hypothesis and retrieved premise.</p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="border-t border-cyberBorder bg-[#0a1020] px-6 py-4 mt-auto">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between text-xs text-slate-500 font-mono">
+      <div>CyberRAG: Knowledge Graph-Augmented Retrieval & Evidence Verification System</div>
+      <div>Running locally · works offline · the LLM is optional</div>
+    </div>
+  </footer>
+
+  <script>
+    // State colors
+    const STATE_COLORS = {
+      'QUERY_ANALYSIS': { bg: 'bg-blue-950', border: 'border-blue-800', text: 'text-blue-400' },
+      'RETRIEVAL': { bg: 'bg-cyan-950', border: 'border-cyan-800', text: 'text-cyan-400' },
+      'EVIDENCE_INSPECTION': { bg: 'bg-indigo-950', border: 'border-indigo-800', text: 'text-indigo-400' },
+      'RETRY_EXPANSION': { bg: 'bg-amber-950', border: 'border-amber-800', text: 'text-amber-400' },
+      'VERIFICATION': { bg: 'bg-purple-950', border: 'border-purple-800', text: 'text-purple-400' },
+      'CONFLICT_RESOLUTION': { bg: 'bg-pink-950', border: 'border-pink-800', text: 'text-pink-400' },
+      'ANSWER_GENERATION': { bg: 'bg-emerald-950', border: 'border-emerald-800', text: 'text-emerald-400' },
+      'INSUFFICIENT_EVIDENCE': { bg: 'bg-orange-950', border: 'border-orange-800', text: 'text-orange-400' },
+    };
+
+    let networkInstance = null;
+
+    // Untrusted report text must never reach innerHTML unescaped (R7).
+    function esc(v) {
+      return String(v === null || v === undefined ? '' : v)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    // Uploads are scoped to this browser tab's session (H11).
+    const SESSION_ID = (() => {
+      try {
+        let id = sessionStorage.getItem('cti_session');
+        if (!id) { id = 'ui-' + Math.random().toString(36).slice(2, 12); sessionStorage.setItem('cti_session', id); }
+        return id;
+      } catch (e) { return 'ui-' + Math.random().toString(36).slice(2, 12); }
+    })();
+    const JSON_HEADERS = { 'Content-Type': 'application/json', 'X-Session-Id': SESSION_ID };
+
+    // Load initial health telemetry
+    async function loadTelemetry() {
+      try {
+        const res = await fetch('/api/health');
+        if (res.ok) {
+          const data = await res.json();
+          const llmEl = document.getElementById('telemetry-llm');
+          if (data.active_model && data.active_model !== 'Unavailable') {
+            llmEl.textContent = data.active_model;
+            llmEl.className = 'text-emerald-400 font-medium';
+          } else {
+            llmEl.textContent = 'LLM offline (template briefs)';
+            llmEl.className = 'text-amber-400 font-medium';
+          }
+          if (data.verifier_status) {
+            const verifierSpan = document.getElementById('telemetry-verifier');
+            const dotVerifier = document.getElementById('dot-verifier');
+            if (data.verifier_status === 'ready') {
+              verifierSpan.textContent = 'DeBERTa-v3-base (Ready)';
+              verifierSpan.className = 'text-cyan-300 font-medium';
+              if (dotVerifier) dotVerifier.className = 'w-2 h-2 rounded-full bg-cyan-400 animate-pulse';
+            } else {
+              verifierSpan.textContent = 'Failed / Offline';
+              verifierSpan.className = 'text-red-400 font-medium';
+              if (dotVerifier) dotVerifier.className = 'w-2 h-2 rounded-full bg-red-400';
+            }
+          }
+          if (data.indexed_entities) {
+            document.getElementById('telemetry-kg').textContent = `${data.indexed_entities.toLocaleString()} Ent · ${data.indexed_assertions} Rel`;
+          }
+          if (data.indexed_segments) {
+            document.getElementById('telemetry-corpus').textContent = `${data.indexed_segments.toLocaleString()} Segments (104 Rpts)`;
+          }
+        }
+      } catch (e) {
+        console.warn('Telemetry load failed:', e);
+      }
+    }
+
+    function setScenario(query) {
+      document.getElementById('query-input').value = query;
+      triggerInvestigation();
+    }
+
+    async function triggerInvestigation() {
+      const query = document.getElementById('query-input').value.trim();
+      if (!query) return;
+
+      const spinner = document.getElementById('loading-spinner');
+      const results = document.getElementById('results-container');
+      const btn = document.getElementById('btn-investigate');
+
+      spinner.classList.remove('hidden');
+      results.classList.add('opacity-40', 'pointer-events-none');
+      btn.disabled = true;
+
+      try {
+        const response = await fetch('/api/investigate', {
+          method: 'POST',
+          headers: JSON_HEADERS,
+          body: JSON.stringify({ query: query })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Server returned ${response.status}: ${await response.text()}`);
+        }
+
+        const data = await response.json();
+        renderResults(data);
+      } catch (err) {
+        alert('Investigation error: ' + err.message);
+      } finally {
+        spinner.classList.add('hidden');
+        results.classList.remove('opacity-40', 'pointer-events-none');
+        btn.disabled = false;
+        lucide.createIcons();
+      }
+    }
+
+    function renderResults(data) {
+      // 1. Status Banner
+      const statusBadge = document.getElementById('badge-status');
+      const textStatus = document.getElementById('text-status');
+      const textConfidence = document.getElementById('text-confidence');
+      const textDiversity = document.getElementById('text-diversity');
+      const textHypothesis = document.getElementById('text-hypothesis');
+      const metricBanner = document.getElementById('metric-banner');
+
+      textStatus.textContent = data.status;
+      const tier = data.support_tier || 'NONE';
+      textConfidence.textContent = tier.replace('_', ' ') + (data.hedged_only ? ' (hedged)' : '');
+      textDiversity.textContent = data.source_diversity + (data.source_diversity === 1 ? ' Publisher' : ' Publishers');
+      textHypothesis.textContent = data.query;
+
+      statusBadge.className = 'px-4 py-2 rounded-lg text-sm font-bold font-mono uppercase tracking-wider flex items-center space-x-2 ';
+      if (data.status === 'SUPPORTED') {
+        statusBadge.className += 'bg-emerald-950 text-emerald-400 border border-emerald-800';
+        metricBanner.className = 'glass-panel rounded-xl p-5 border-l-4 border-emerald-500';
+      } else if (data.status === 'CONFLICTING_EVIDENCE') {
+        statusBadge.className += 'bg-purple-950 text-purple-400 border border-purple-800';
+        metricBanner.className = 'glass-panel rounded-xl p-5 border-l-4 border-purple-500';
+      } else if (data.status === 'INSUFFICIENT_EVIDENCE' || data.status === 'LOOKUP') {
+        statusBadge.className += 'bg-orange-950 text-orange-400 border border-orange-800';
+        metricBanner.className = 'glass-panel rounded-xl p-5 border-l-4 border-orange-500';
+      } else {
+        statusBadge.className += 'bg-red-950 text-red-400 border border-red-800';
+        metricBanner.className = 'glass-panel rounded-xl p-5 border-l-4 border-red-500';
+      }
+
+      // 2. Execution Trace
+      const traceList = document.getElementById('trace-list');
+      traceList.innerHTML = '';
+      document.getElementById('step-count-badge').textContent = `${data.execution_trace.length} Steps`;
+
+      data.execution_trace.forEach((step, idx) => {
+        const theme = STATE_COLORS[step.state] || { bg: 'bg-slate-900', border: 'border-slate-800', text: 'text-slate-300' };
+        const stepCard = document.createElement('div');
+        stepCard.className = `p-3.5 rounded-lg border ${theme.border} ${theme.bg} space-y-2 text-xs`;
+
+        const actionText = step.action || step.thought || 'Executed retrieval operation';
+        const outcomeText = step.decision_outcome || step.tool_output_summary || '';
+        const reasonHtml = step.retry_or_termination_reason 
+          ? `<div class="pt-1 text-[11px] text-amber-400 font-mono"><span class="text-amber-500 font-semibold">Reason:</span> ${esc(step.retry_or_termination_reason)}</div>`
+          : '';
+
+        stepCard.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="font-mono font-bold ${theme.text}">Step ${step.step_index}: ${esc(step.state)}</span>
+            <span class="text-[10px] text-slate-400 font-mono px-2 py-0.5 rounded bg-slate-800/80">${esc(step.tool_name.split('.').pop())}</span>
+          </div>
+          <div class="font-medium text-slate-200">${esc(actionText)}</div>
+          <div class="pt-1 border-t border-slate-800/80 font-mono text-[11px] text-slate-400 space-y-1">
+            <div><span class="text-slate-500">Decision Outcome:</span> <span class="text-cyan-400">${esc(outcomeText)}</span></div>
+            ${reasonHtml}
+          </div>
+        `;
+        traceList.appendChild(stepCard);
+      });
+
+      // 3. Grounded Synthesis
+      document.getElementById('narrative-content').textContent = data.narrative;
+
+      // 4. Evidence List
+      const evidenceList = document.getElementById('evidence-list');
+      evidenceList.innerHTML = '';
+      const allEvidence = [...(data.supporting_evidence || []), ...(data.contradicting_evidence || [])];
+      document.getElementById('evidence-count-badge').textContent = `${allEvidence.length} Passages`;
+
+      if (allEvidence.length === 0) {
+        evidenceList.innerHTML = `
+          <div class="p-4 rounded-lg bg-slate-900/50 border border-slate-800 text-xs text-slate-400 text-center font-mono">
+            No probative evidence passages survived the entity co-occurrence gate.
+          </div>
+        `;
+      } else {
+        allEvidence.forEach(ev => {
+          const card = document.createElement('div');
+          card.className = 'p-3.5 rounded-lg bg-slate-900 border border-slate-800 space-y-2 text-xs';
+          card.innerHTML = `
+            <div class="flex items-center justify-between text-slate-400 font-mono text-[11px]">
+              <span class="px-2 py-0.5 rounded bg-slate-800 text-cyan-400 font-semibold">[${esc(ev.source || 'CTI Report')} | ${esc(ev.publication_date || 'Date N/A')} | ${esc(ev.segment_id || 'seg')}]${ev.source_type === 'user_upload' ? ' (user-supplied)' : ''}${ev.synthetic ? ' (DEMO - SYNTHETIC)' : ''}</span>
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${ev.nli_label === 'ENTAILMENT' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-red-950 text-red-400 border border-red-800'}">${esc(ev.nli_label)}</span>
+            </div>
+            <p class="text-slate-200 text-xs leading-relaxed italic">"${esc(ev.text)}"</p>
+            <div class="flex items-center space-x-4 text-[10px] text-slate-500 font-mono pt-1">
+              <span>p_entail: <b class="text-emerald-400">${(ev.p_entail * 100).toFixed(1)}%</b></span>
+              <span>p_contra: <b class="text-red-400">${(ev.p_contra * 100).toFixed(1)}%</b></span>
+            </div>
+          `;
+          evidenceList.appendChild(card);
+        });
+
+        // Set NLI meters from first supporting or contradicting evidence
+        const primaryEv = allEvidence[0];
+        if (primaryEv) {
+          const pEnt = primaryEv.p_entail || 0;
+          const pCon = primaryEv.p_contra || 0;
+          const pNeu = primaryEv.p_neutral || (1 - pEnt - pCon);
+
+          document.getElementById('meter-val-entail').textContent = pEnt.toFixed(4);
+          document.getElementById('meter-bar-entail').style.width = `${Math.min(100, pEnt * 100)}%`;
+
+          document.getElementById('meter-val-contra').textContent = pCon.toFixed(4);
+          document.getElementById('meter-bar-contra').style.width = `${Math.min(100, pCon * 100)}%`;
+
+          document.getElementById('meter-val-neutral').textContent = pNeu.toFixed(4);
+          document.getElementById('meter-bar-neutral').style.width = `${Math.min(100, pNeu * 100)}%`;
+        }
+      }
+
+      // 5. Render Knowledge Graph Subgraph
+      renderGraph(data.subgraph);
+    }
+
+    function renderGraph(subgraph) {
+      const container = document.getElementById('graph-container');
+      if (!subgraph || !subgraph.nodes || subgraph.nodes.length === 0) {
+        container.innerHTML = `
+          <div class="flex h-full items-center justify-center text-xs text-slate-500 font-mono">
+            No local graph neighbors found for query entities
+          </div>
+        `;
+        return;
+      }
+
+      const nodes = new vis.DataSet(
+        subgraph.nodes.map(n => ({
+          id: n.id,
+          label: n.label,
+          color: n.group === 'matched_entity' ? '#06b6d4' : '#64748b',
+          font: { color: '#ffffff', size: 12, face: 'JetBrains Mono' },
+          shape: n.group === 'matched_entity' ? 'diamond' : 'dot',
+          size: n.group === 'matched_entity' ? 22 : 12,
+        }))
+      );
+
+      const edges = new vis.DataSet(
+        subgraph.edges.map(e => ({
+          from: e.from,
+          to: e.to,
+          label: e.label,
+          arrows: 'to',
+          color: { color: '#334155', highlight: '#10b981' },
+          font: { color: '#94a3b8', size: 9, align: 'middle' },
+          smooth: { type: 'continuous' }
+        }))
+      );
+
+      const data = { nodes: nodes, edges: edges };
+      const options = {
+        physics: {
+          solver: 'forceAtlas2Based',
+          forceAtlas2Based: { gravitationalConstant: -35, centralGravity: 0.01, springLength: 80 }
+        },
+        interaction: { hover: true, zoomView: true }
+      };
+
+      if (networkInstance) {
+        networkInstance.destroy();
+      }
+      networkInstance = new vis.Network(container, data, options);
+    }
+
+    // Report Ingestion Modal Controls
+    function toggleUploadModal() {
+      const modal = document.getElementById('upload-modal');
+      modal.classList.toggle('hidden');
+    }
+
+    function fillSampleTakedownReport() {
+      document.getElementById('upload-title').value = "Europol / CISA Joint Advisory: Emotet Infrastructure Takedown";
+      document.getElementById('upload-source').value = "Europol / CISA";
+      document.getElementById('upload-date').value = "2021-05-20";
+      document.getElementById('upload-text').value = 
+        "Following global law enforcement disruption in early 2021, the Emotet infrastructure was seized. " +
+        "Telemetry confirms that Emotet no longer uses TrickBot payloads or dropper channels across enterprise networks.";
+    }
+
+    async function submitReportIngestion() {
+      const title = document.getElementById('upload-title').value.trim();
+      const source = document.getElementById('upload-source').value.trim();
+      const date = document.getElementById('upload-date').value.trim();
+      const text = document.getElementById('upload-text').value.trim();
+
+      if (!text) {
+        alert("Please enter report text.");
+        return;
+      }
+
+      const btn = document.getElementById('btn-submit-upload');
+      btn.disabled = true;
+      btn.textContent = "Ingesting & Updating Graph...";
+
+      try {
+        const resp = await fetch('/api/ingest_report', {
+          method: 'POST',
+          headers: JSON_HEADERS,
+          body: JSON.stringify({
+            title: title || "Uploaded CTI Report",
+            source: source || "Analyst Submission",
+            publication_date: date || "2024-01-01",
+            text: text
+          })
+        });
+
+        const res = await resp.json();
+        if (resp.ok) {
+          alert(`Report Ingested Successfully!\n\n` +
+                `• Sentences Indexing: ${res.total_sentences}\n` +
+                `• Extracted Entities: ${res.extracted_entities}\n` +
+                `• Extracted Relations: ${res.extracted_relations}\n` +
+                `• Graph Updated: +${res.new_nodes_added} Nodes, +${res.new_edges_added} Edges.`);
+          toggleUploadModal();
+          loadTelemetry();
+        } else {
+          alert("Ingestion error: " + (res.detail || "Failed"));
+        }
+      } catch (err) {
+        alert("Ingestion failed: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Submit & Ingest Report";
+      }
+    }
+
+    // Startup
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      loadTelemetry();
+      triggerInvestigation(); // Run default initial query
+    });
+  </script>
+
+  <!-- Ingest Report Modal -->
+  <div id="upload-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="glass-panel rounded-xl max-w-2xl w-full p-6 space-y-4 shadow-2xl border border-slate-700 bg-slate-900">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-base font-semibold text-white flex items-center space-x-2">
+          <i data-lucide="upload-cloud" class="w-5 h-5 text-cyan-400"></i>
+          <span>Ingest New Threat Report</span>
+        </h3>
+        <button onclick="toggleUploadModal()" class="text-slate-400 hover:text-white">&times;</button>
+      </div>
+
+      <div class="space-y-3 text-xs font-mono">
+        <div>
+          <label class="block text-slate-400 mb-1">Report Title:</label>
+          <input id="upload-title" type="text" placeholder="e.g. CISA Threat Advisory" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-400 mb-1">Source / Vendor:</label>
+            <input id="upload-source" type="text" placeholder="e.g. Europol / CISA" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white" />
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">Publication Date (YYYY-MM-DD):</label>
+            <input id="upload-date" type="text" placeholder="e.g. 2021-05-20" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Report Text / Telemetry Passages:</label>
+          <textarea id="upload-text" rows="5" placeholder="Paste threat intelligence paragraphs here..." class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white font-mono"></textarea>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-3 border-t border-slate-800">
+        <button onclick="fillSampleTakedownReport()" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-xs text-purple-300 border border-purple-800 font-mono">
+          Pre-fill sample (user-supplied, synthetic)
+        </button>
+        <div class="flex space-x-2">
+          <button onclick="toggleUploadModal()" class="px-4 py-2 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 font-mono">
+            Cancel
+          </button>
+          <button id="btn-submit-upload" onclick="submitReportIngestion()" class="px-4 py-2 rounded bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white text-xs font-semibold font-mono shadow">
+            Submit & Ingest Report
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  </script>
+</body>
+</html>

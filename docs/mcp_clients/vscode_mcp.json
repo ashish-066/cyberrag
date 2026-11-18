@@ -1,0 +1,10 @@
+{
+  "servers": {
+    "whentrue-cti": {
+      "type": "stdio",
+      "command": "<REPO>/.venv/Scripts/python.exe",
+      "args": ["<REPO>/mcp_server/server.py", "--transport", "stdio"],
+      "env": { "CTI_OFFLINE": "1", "PYTHONIOENCODING": "utf-8" }
+    }
+  }
+}

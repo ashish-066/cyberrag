@@ -1,10 +1,17 @@
 """Dense and hybrid retrieval over processed AnnoCTR segments."""
 from __future__ import annotations
+import hashlib
+import os
 import json
 import re
+import logging
 from pathlib import Path
 from typing import Any
 import numpy as np
+
+# Enforce offline cache usage to prevent socket DNS lookups in sandboxed/offline environments
+os.environ.setdefault("HF_HUB_OFFLINE", "1")
+os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
 
 try:
     import truststore
@@ -15,9 +22,22 @@ except Exception:
 from sentence_transformers import SentenceTransformer
 from rank_bm25 import BM25Okapi
 
+logger = logging.getLogger(__name__)
+
 
 def _tokens(text: str) -> list[str]:
     return re.findall(r"(?u)\b[\w.-]+\b", (text or "").lower())
+
+
+def embedding_cache_key(texts: list[str], model_name: str) -> str:
+    """Hash of model name + ordered segment texts: any data or model change invalidates the cache."""
+    h = hashlib.sha256()
+    h.update(model_name.encode("utf-8"))
+    h.update(str(len(texts)).encode("ascii"))
+    for t in texts:
+        h.update(b"|")
+        h.update(t.encode("utf-8", errors="replace"))
+    return h.hexdigest()
 
 
 def _read_jsonl(path: str | Path) -> list[dict[str, Any]]:
@@ -43,6 +63,8 @@ class StandardRAGRetriever:
         model: Any | None = None,
         embeddings: np.ndarray | None = None,
         batch_size: int = 64,
+        cache_path: str | Path | None = None,
+        cache_meta_path: str | Path | None = None,
     ):
         self.data_path = Path(data_path)
         self.documents = documents if documents is not None else _read_jsonl(self.data_path)
@@ -54,26 +76,39 @@ class StandardRAGRetriever:
         ]
         self.model = model if model is not None else SentenceTransformer(model_name)
         if embeddings is None:
-            cache_path = Path("data/segment_embeddings_minilm.npy")
-            if cache_path.exists():
-                print(f"Loading cached embeddings from {cache_path}...")
-                self.embeddings = np.load(cache_path)
-            else:
+            cache = Path(cache_path) if cache_path else self.data_path.parent / "segment_embeddings_minilm.npy"
+            meta = Path(cache_meta_path) if cache_meta_path else cache.with_suffix(".meta.json")
+            key = embedding_cache_key(self.texts, model_name)
+            self.embeddings = self._load_cache(cache, meta, key)
+            if self.embeddings is None:
+                logger.info("Embedding cache missing or stale; rebuilding...")
                 self.embeddings = self.model.encode(
                     self.texts, convert_to_numpy=True, normalize_embeddings=True,
-                    show_progress_bar=True, batch_size=batch_size
+                    show_progress_bar=False, batch_size=batch_size
                 )
                 try:
-                    np.save(cache_path, self.embeddings)
-                    print(f"Saved embeddings cache to {cache_path}")
+                    np.save(cache, self.embeddings)
+                    meta.write_text(json.dumps({"key": key, "model": model_name, "count": len(self.texts)}), encoding="utf-8")
                 except Exception:
                     pass
         else:
             self.embeddings = np.asarray(embeddings, dtype=np.float32)
         if len(self.embeddings) != len(self.documents):
             raise ValueError("Embedding count does not match document count")
-        print(f"Loaded {len(self.documents)} segments")
-        print("Embeddings shape:", self.embeddings.shape)
+        logger.info("Loaded %d segments", len(self.documents))
+        logger.info("Embeddings shape: %s", self.embeddings.shape)
+
+    @staticmethod
+    def _load_cache(cache: Path, meta: Path, key: str):
+        """Return cached embeddings only if the meta hash matches; corrupt files mean rebuild."""
+        try:
+            if not (cache.exists() and meta.exists()):
+                return None
+            if json.loads(meta.read_text(encoding="utf-8")).get("key") != key:
+                return None
+            return np.load(cache)
+        except Exception:
+            return None
 
     def retrieve(self, query: str, top_k: int = 5) -> list[dict[str, Any]]:
         if top_k <= 0:
@@ -108,8 +143,8 @@ class HybridRAGRetriever:
         self.rrf_k = rrf_k
         self.tokenized_docs = [_tokens(t) for t in dense_retriever.texts]
         self.bm25 = BM25Okapi(self.tokenized_docs)
-        print("BM25 index created!")
-        print("Hybrid retriever ready!")
+        logger.info("BM25 index created!")
+        logger.info("Hybrid retriever ready!")
 
     def retrieve(
         self, query: str, top_k: int = 5, candidate_k: int = 50

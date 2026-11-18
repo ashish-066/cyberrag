@@ -171,7 +171,7 @@ def main():
                 "source_vendor": rel.source,
                 "publication_date": rel.publication_date,
                 "confidence": round(rel.confidence, 4),
-                "trust_level": "trusted",
+                "trust_level": "unverified",
                 "human_verified": False,
                 "polarity": rel.polarity,
                 "trigger": rel.trigger,

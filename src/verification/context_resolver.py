@@ -194,8 +194,6 @@ class ContextResolver:
         supp_text = " ".join(e.get("evidence", "") or e.get("evidence_text", "") for e in supporting).lower()
         contra_text = " ".join(e.get("evidence", "") or e.get("evidence_text", "") for e in contradicting).lower()
 
-        supp_markers = {w for w in cls.CAMPAIGN_MARKERS if w in supp_text}
-        contra_markers = {w for w in cls.CAMPAIGN_MARKERS if w in contra_text}
 
         # If evidence sets refer to distinct campaigns/clusters (e.g. tag differences)
         if ("tag" in supp_text or "campaign" in supp_text) and ("tag" in contra_text or "campaign" in contra_text):

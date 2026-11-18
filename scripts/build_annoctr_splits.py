@@ -13,13 +13,14 @@ import logging
 import random
 import re
 from collections import Counter, defaultdict
+import os
 from pathlib import Path
 from typing import List, Dict, Any
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger("AnnoCTRSplitter")
 
-INPUT_PATH = Path(r"C:\Users\njosh\Downloads\ner_predictions_test.jsonl")
+INPUT_PATH = Path(os.environ.get("ANNOCTR_TEST_JSONL", "data/annoctr_source/ner_test.jsonl"))
 GOLD_TEST_PATH = Path("data/benchmark/annoctr_gold_standard.json")
 TRAIN_PATH = Path("data/benchmark/annoctr_train_split.json")
 

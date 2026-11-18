@@ -190,7 +190,7 @@ class UnseenCTIEvaluator:
         total_sentences = sum(r.total_sentences for r in preprocessed)
 
         # Extract with Baseline vs Hybrid
-        baseline_entities = self.baseline_ner.extract_all(preprocessed)
+        self.baseline_ner.extract_all(preprocessed)
         hybrid_entities = self.hybrid_ner.extract_all(preprocessed)
 
         # Extract Relations

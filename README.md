@@ -3,10 +3,11 @@
 > **Graph-Augmented Retrieval, Cross-Encoder NLI Evidence Verification, and Context-Aware Contradiction Resolution for Cyber Threat Intelligence**
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Analyst%20Workbench-009688.svg)](demo/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.30+-FF4B4B.svg)](https://streamlit.io/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-EE4C2C.svg)](https://pytorch.org/)
 [![HuggingFace](https://img.shields.io/badge/Transformers-DeBERTa--v3-yellow.svg)](https://huggingface.co/cross-encoder/nli-deberta-v3-base)
-[![Tests: 60 Passing](https://img.shields.io/badge/Tests-60%20Passing-brightgreen.svg)](tests/)
+[![Tests: 71 Passing](https://img.shields.io/badge/Tests-71%20Passing-brightgreen.svg)](tests/)
 
 ---
 
@@ -25,7 +26,7 @@ Cyber Threat Intelligence (CTI) analysis requires synthesizing complex, multi-so
 
 ## 2. Integrated System Architecture
 
-CyberRAG operates as a multi-stage, provenance-preserving pipeline:
+CyberRAG operates as a multi-stage, provenance-preserving pipeline integrating a single `VerificationService` (bounded verification workflow), a verified knowledge graph, and three interfaces (Streamlit, FastAPI workbench and an MCP server):
 
 ```mermaid
 flowchart TD
@@ -46,21 +47,21 @@ flowchart TD
         H --> I["Dynamic In-Memory Graph Expansion for New Uploads"]
     end
 
-    subgraph Retrieval ["4. Hybrid Graph-Augmented Retrieval"]
-        J["Analyst Hypothesis / Query"] --> K1["Dense Retrieval: all-MiniLM-L6-v2"]
-        J --> K2["Sparse Keyword Retrieval: BM25Okapi"]
-        J --> K3["Entity-Linked Graph Neighborhood Traversal"]
-        K1 & K2 & K3 --> L["Reciprocal Rank Fusion & Duplicate Detection"]
+    subgraph Agent ["4. Bounded Verification Workflow (src/core/service.py)"]
+        J["Claim or question"] --> K["Planner: NER + MITRE alias spans (LLM optional, schema-validated)"]
+        K --> L["Hybrid dense / BM25 / graph retrieval + per-session upload index"]
+        L --> M{"Entity gate: both entities in one sentence (MITRE aliases)"}
+        M -->|Fail| P["INSUFFICIENT_EVIDENCE, NLI withheld"]
+        M -->|Pass| D1["De-duplicate (ids + normalised text), date filter"]
+        D1 --> N["DeBERTa-v3 NLI per passage"]
+        N --> Q["Context Resolver: temporal direction and boundary"]
+        Q --> R["Verdict + support tier + cited brief"]
     end
 
-    subgraph Verification ["5. Verification & Context Resolution"]
-        L --> M["Cross-Encoder NLI Verifier: DeBERTa-v3"]
-        M --> N["Claim Aggregator: Corroboration & Duplicate Suppression"]
-        N --> O["Context Resolver: Temporal / Campaign / Attribution Logic"]
-    end
-
-    subgraph Interface ["6. Analyst UI"]
-        I & O --> P["Interactive Streamlit Dashboard with Real-Time PyVis Graph"]
+    subgraph Interfaces ["5. Dual Analyst Interfaces"]
+        R & I --> S1["FastAPI Analyst Workbench (:8080)<br/>• Air-Gapped Offline SPA (Vis.js / Tailwind / Lucide)<br/>• Live workflow trace<br/>• Support tiers (no invented percentages)"]
+        R & I --> S3["MCP server (whentrue-cti)<br/>• 8 tools, 3 resources, 1 prompt<br/>• stdio and Streamable HTTP"]
+        R & I --> S2["Streamlit Research Dashboard (:8501)<br/>• Custom PDF/TXT Ingestion & Parsing<br/>• Interactive PyVis Physics Graph Explorer<br/>• Multi-Tab NER & Extraction Analysis"]
     end
 ```
 
@@ -68,12 +69,16 @@ flowchart TD
 | Subsystem | Modules | Core Responsibility |
 | :--- | :--- | :--- |
 | **Data Ingestion** | `src/dataset/`, `src/preprocessor/` | Defangs network indicators (`hxxp[:]//`), performs NFKC unicode normalization, and segments text into 5,991 segments across 2,698 paragraphs with immutable provenance metadata (`report_id`, `source`, `publication_date`, `sentence_id`). |
-| **Cyber NLP** | `src/nlp/` | Extracts 7 entity categories (*ThreatActor, Malware, Tool, Vulnerability, Technique, Organization, Location*). Resolves aliases to 1,726 canonical MITRE ATT&CK entries. Clause-aware extractor extracts `USES`, `TARGETS`, `EXPLOITS`, and `USES_TECHNIQUE` while filtering reporting vendors and spatial prepositions. Preserves negative assertions (`polarity="negative"`) with full evidence grounding. |
+| **Cyber NLP** | `src/nlp/` | Extracts 7 entity categories (*ThreatActor, Malware, Tool, CVE, Technique, Organization, Location*). Resolves aliases to 1,726 canonical MITRE ATT&CK entries. Clause-aware extractor extracts `USES`, `TARGETS`, `EXPLOITS`, and `USES_TECHNIQUE` while filtering reporting vendors and spatial prepositions. Preserves negative assertions (`polarity="negative"`) with full evidence grounding. |
 | **Knowledge Graph** | `src/graph/` | Manages the baseline 1,400-node, 329-edge NetworkX Knowledge Graph. Supports in-memory dynamic expansion for live uploads without corrupting the baseline on disk. |
+| **Core service** | `src/core/` | `VerificationService` is the single entry point used by Streamlit, FastAPI and MCP: validated config, typed errors, MITRE-registry alias resolver, planner, per-session upload store, STIX 2.1 export, structured logs. |
+| **Verification workflow** | `src/agent/` | Thin adapter that renders the service result as a step trace (every sub-claim is verified). It is a fixed, bounded workflow, not an autonomous agent. |
+| **MCP server** | `mcp_server/` | `whentrue-cti`: tools `search_evidence`, `verify_claim`, `verify_question`, `get_entity`, `get_timeline`, `ingest_report_preview/confirm`, `export_stix`. See `docs/MCP_GUIDE.md`. |
 | **Hybrid Retrieval** | `src/retrieval.py`, `src/graph_retrieval.py` | Combines 384-dimensional dense semantic embeddings (`sentence-transformers/all-MiniLM-L6-v2`), BM25 token matching, and entity-linked graph assertion lookups. |
 | **Evidence Verification** | `src/verification/` | Employs `cross-encoder/nli-deberta-v3-base` to evaluate hypothesis alignment against retrieved evidence. Softmax scores represent textual alignment rather than empirical certainty. Suppresses intra-vendor duplicate passages. |
 | **Context Resolver** | `src/verification/context_resolver.py` | Classifies conflicting intelligence into a 4-tier CTI contradiction taxonomy: `TEMPORAL_SUPERSEDENCE`, `CAMPAIGN_DIVERGENCE`, `GENUINE_ATTRIBUTION_DISPUTE`, or `AMBIGUOUS_CONFLICT`. |
-| **Web Dashboard** | `app.py`, `src/ingestion.py` | Full-stack interactive Streamlit application with custom file upload (PDF/TXT), live entity linking, dynamic graph visualization (PyVis physics engine), and expandable verification cards. |
+| **FastAPI Workbench** | `demo/server.py`, `demo/static/` | High-speed single-page application (`http://127.0.0.1:8080`) built with offline-bundled Tailwind, Vis.js, and Lucide. Features live structured decision traces, dynamic report ingestion, and local subgraph rendering. |
+| **Streamlit Dashboard** | `app.py`, `src/ingestion.py` | Exploratory Streamlit interface (`http://127.0.0.1:8501`) supporting arbitrary PDF/TXT uploads, in-memory graph expansion, entity inspection tabs, and PyVis physics rendering. |
 
 ---
 
@@ -101,7 +106,7 @@ The integrated baseline system operates over the following verified corpus metri
 In high-stakes cybersecurity operations, unconstrained generative language models pose significant liability due to subtle hallucinations and ungrounded embellishment. CyberRAG's `AnswerGenerator` is deliberately designed to produce **structured, evidence-grounded intelligence syntheses** citing exact report IDs, sources, publication dates, and verbatim premise sentences, rather than generating free-form, unverified text.
 
 ### B. Precise Graph Retrieval (Entity-Linked Traversal)
-Graph retrieval in CyberRAG is implemented as **entity-linked assertion lookup and multi-hop neighborhood traversal**. It indexes entities identified in the query, traverses adjacent validated graph assertions, and pulls the underlying verbatim evidence sentences. It does not claim unbounded semantic graph reasoning; every graph triple is strictly bound to its ingested source sentence.
+Graph retrieval in CyberRAG is implemented as **entity-linked assertion lookup and multi-hop neighborhood traversal**. It indexes entities identified in the query, traverses adjacent extracted graph assertions, and pulls the underlying verbatim evidence sentences. It does not claim unbounded semantic graph reasoning; every graph triple is strictly bound to its ingested source sentence.
 
 ### C. NLI Alignment vs. Calibrated Factual Truth
 Neural Natural Language Inference models output softmax probability distributions representing whether premise text *linguistically entails, contradicts, or remains neutral* to a hypothesis. CyberRAG explicitly treats these as **semantic textual alignment scores**, not calibrated probabilities of real-world historical fact. The platform separates linguistic NLI verification from the contextual domain logic that assesses source corroboration and temporal relevance.
@@ -163,16 +168,16 @@ Evaluated directly against the official Bosch Research train (`ner_train.jsonl`,
 
 | Model Architecture | Precision | Recall | F1 Score | Evaluation Protocol |
 | :--- | :---: | :---: | :---: | :--- |
-| **Baseline Gazetteer / Dictionary** | 0.3540 | 0.3310 | 0.3421 | Exact lexical matching against MITRE ontology |
-| **Hybrid Contextual ML NER** | **0.4498** | **0.4300** | **0.4396** | Contextual sliding-window ML + Gazetteer + Aliases |
-| **Relative Performance Delta** | **+27.1%** | **+29.9%** | **+28.5%** | Demonstrates machine learning generalization gain on noisy real-world CTI |
+| **Baseline Gazetteer / Dictionary** | 0.3668 | 0.3342 | 0.3497 | Exact lexical matching against MITRE ontology |
+| **Hybrid Contextual ML NER** | **0.3964** | **0.4933** | **0.4396** | Contextual sliding-window ML + Gazetteer + Aliases |
+| **Relative Performance Delta** | **+8.1%** | **+47.6%** | **+25.7%** | Demonstrates substantial recall and discovery gain on noisy real-world CTI |
 
-*This is the primary real-world benchmark. Performance on raw, unconstrained CTI text remains modest at F1 = 0.4396, reflecting the substantial difficulty of real-world threat reports (inconsistent terminology, complex nested clauses, and novel out-of-vocabulary threat actor handles). While the hybrid model demonstrates a clear +28.5% relative gain over dictionary lookups, real-text CTI NER remains an open research challenge.*
+*This is the primary real-world benchmark. Performance on raw, unconstrained CTI text is F1 = 0.4396, reflecting the substantial difficulty of real-world threat reports (inconsistent terminology, complex nested clauses, and novel out-of-vocabulary threat actor handles). The hybrid model demonstrates a clear +25.7% relative F1 gain and +47.6% recall improvement over dictionary lookups on document-disjoint real-world test data.*
 
 ### 6.2 Controlled Pattern Extraction Test (Synthetic 50 Sentences)
 * **Dataset**: A 50-sentence synthetic challenge benchmark (`data/benchmark/gold_standard_annotations.json`) designed to evaluate rule precision under ideal canonical entity representation.
-* **Protocol**: Report-Level GroupKFold Cross-Validation (Leave-One-Report-Out).
-* **Results**: Precision = **0.9850**, Recall = **0.9770**, Overall F1 = **0.9809**.
+* **Protocol**: Report-Level GroupKFold Cross-Validation (Leave-One-Report-Out across 6 report groups).
+* **Results**: Precision = **0.8614**, Recall = **0.9355**, Overall F1 = **0.8969**.
 * **Scope Note**: This score measures rule engine coverage under controlled conditions; it should not be conflated with the real-world AnnoCTR benchmark above.
 
 ### 6.3 Developer Test Paragraphs (Generalization Check)
@@ -180,13 +185,15 @@ Evaluated directly against the official Bosch Research train (`ner_train.jsonl`,
 * **Results**: Precision = **0.9388**, Recall = **0.9020**, Overall F1 = **0.9200**.
 * **Provenance Verification**: **100.0%** metadata compliance (zero missing report IDs, timestamps, or sentence references).
 
-### 6.4 Unit Test Suite (100% Passing)
-The entire test suite covers all pipeline stages (evaluated live via `python run_tests.py`):
+### 6.4 Retrieval ablation (withdrawn)
+The v5 "LLM-enhanced retrieval ablation" is **not reported**. It was circular: the hand-written alias table that generated the retrieval gold labels was also given to the "expanded" system, so the gains did not measure retrieval quality. The script and its output were moved to `outputs/legacy/` with an explanation. A sound ablation is Stage 2 work.
+
+### 6.5 Test suite
+```bash
+python -m pytest            # unit, condition-matrix, MCP contract, fuzz, e2e (real models if cached)
+python run_tests.py         # same suites through unittest discovery
 ```
-Ran 60 tests in 73.464s
-OK
-```
-*Note: Running `python run_tests.py` requires internet access on first run so the Hugging Face cross-encoder model weights (`cross-encoder/nli-deberta-v3-base`) can initialize and verify.*
+Real-model tests are skipped automatically if the models are not cached (`python scripts/download_models.py`). Set `CTI_RUN_REAL=0` to skip them explicitly. Latest measured numbers are in `CHANGELOG.md`.
 
 ---
 
@@ -195,7 +202,7 @@ OK
 ### Prerequisites
 * Python 3.10+ (tested on Python 3.10, 3.11)
 * Git
-* Internet connection (for initial Hugging Face model downloads)
+* Internet only for the one-time model download (`python scripts/download_models.py`); everything runs offline afterwards
 
 ### Local Setup
 ```bash
@@ -212,19 +219,36 @@ source venv/bin/activate
 
 # 3. Install dependencies
 pip install --upgrade pip
-pip install -r requirements.txt
+pip install -r requirements.lock      # tested pins (or requirements.txt for loose bounds)
+python scripts/download_models.py     # one time, while online
+python scripts/build_manifest.py      # only if you intentionally changed files in data/
 ```
 
-### Launch the Streamlit Platform
+### Launch the Platform
+
+#### Option A: Launch CyberRAG Analyst Workbench (FastAPI + Modern SPA)
+```bash
+python demo/server.py
+```
+Open `http://localhost:8080` in your browser for the full interactive CTI Analyst Command Center, featuring the live workflow trace, Knowledge Graph canvas, DeBERTa NLI probability gauges, custom report ingestion, and one-click benchmark scenarios.
+
+#### Option B: Launch the MCP server
+```bash
+python -m mcp_server.server --transport stdio          # LM Studio / Claude Desktop
+python -m mcp_server.server --transport http --port 8765   # remote agents, MCP Inspector
+```
+See `docs/MCP_GUIDE.md` for LM Studio, Claude Desktop and MCP Inspector setup.
+
+#### Option C: Launch Streamlit Dashboard (frozen, kept working)
 ```bash
 streamlit run app.py
 ```
-Open `http://localhost:8501` in your browser. Select any of the 4 preset scenarios or upload an arbitrary CTI PDF/TXT report.
+Open `http://localhost:8501` in your browser. Select any of the preset scenarios or upload an arbitrary CTI PDF/TXT report.
 
 ### Run the Test Suite
 ```bash
-# Run all 60 unit tests across all 13 test suites
-python run_tests.py
+python -m pytest
+# or: python run_tests.py
 ```
 
 ### Run Full Data & Knowledge Graph Verification
@@ -242,10 +266,10 @@ CyberRAG includes a containerized build for cloud environments (AWS ECS, GCP Clo
 # Build Docker image
 docker build -t cyberrag .
 
-# Run container (binds to port 8501)
-docker run -d -p 8501:8501 --name cyberrag_app cyberrag
+# Run the workbench (models are downloaded into the mounted cache on first run)
+docker run -d -p 8080:8080 -v hf_cache:/root/.cache/huggingface --name cyberrag_app cyberrag
 ```
-Access the application at `http://localhost:8501`.
+Access the workbench at `http://localhost:8080` (`/health` for liveness, `/ready` once models are loaded).
 
 ---
 
@@ -293,3 +317,14 @@ To ensure scientific honesty and transparency, we document several known limitat
 ## 12. License
 
 This project is licensed under the **Apache License, Version 2.0**. See the [LICENSE](LICENSE) file for complete terms. Third-party datasets (such as the Bosch Research AnnoCTR corpus under CC BY-SA 4.0) and external frameworks are attributed in [NOTICE.md](NOTICE.md).
+
+
+---
+
+## 13. Known limitations added in v6 (Stage 1)
+
+* NLI is sentence-level textual alignment. It can still accept a loosely related sentence (for example "TrickBot is operated by the actor that deploys Conti" entails "Conti uses TrickBot"). Support tiers and the entity gate reduce, but do not remove, this.
+* One publisher is never `CORROBORATED`. Near-duplicate and syndicated reports are only caught when ids or normalised text match; independence grouping is Stage 2.
+* `as_of_date` filters by publication date, not by when the event happened.
+* Live uploads use gazetteer NER only (no trained ML NER artifact is shipped) and live for one session.
+* The corpus is English only; non-English input returns `INSUFFICIENT_EVIDENCE` with a warning.

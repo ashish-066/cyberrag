@@ -260,11 +260,12 @@ class LiveReportProcessor:
         if not relations:
             return []
 
-        # Deduplicate candidate claims strictly
+        # Deduplicate candidate claims strictly (including polarity)
         claims_to_verify: Dict[str, Tuple[str, ExtractedRelation]] = {}
         for rel in relations:
             claim_text = f"{rel.source_entity.strip()} {rel.relation_type.strip()} {rel.target_entity.strip()}."
-            key = claim_text.strip().lower()
+            pol = getattr(rel, "polarity", "positive")
+            key = f"{claim_text.strip().lower()}::{pol}"
             if key not in claims_to_verify:
                 claims_to_verify[key] = (claim_text, rel)
 
@@ -293,16 +294,15 @@ class LiveReportProcessor:
 
             # When the extracted intelligence is a negative assertion (e.g. post-takedown operational report):
             if getattr(rel, "polarity", "positive") == "negative":
-                # Safeguard 3: Run the actual verifier on the newly ingested evidence without hardcoding NLI labels
-                if self.pipeline.verifier:
-                    nli_pred = self.pipeline.verifier.classify_pair(evidence=rel.evidence_text, claim=claim_text)
-                    p_ent = round(nli_pred.p_entailment, 4)
-                    p_contra = round(nli_pred.p_contradiction, 4)
-                    p_neut = round(nli_pred.p_neutral, 4)
-                    pred_label = nli_pred.label
-                else:
-                    pred_label = "contradiction"
-                    p_ent, p_contra, p_neut = 0.0019, 0.9963, 0.0018
+                if not self.pipeline.verifier:
+                    raise RuntimeError(
+                        "Cannot verify negative intelligence upload: CTIEvidenceVerifier (DeBERTa-v3) is not loaded."
+                    )
+                nli_pred = self.pipeline.verifier.classify_pair(evidence=rel.evidence_text, claim=claim_text)
+                pred_label = nli_pred.label
+                p_ent = round(nli_pred.p_entailment, 4)
+                p_contra = round(nli_pred.p_contradiction, 4)
+                p_neut = round(nli_pred.p_neutral, 4)
 
                 uploaded_ev_record = {
                     "label": pred_label,
@@ -324,27 +324,22 @@ class LiveReportProcessor:
                     "duplicate_of": None,
                 }
 
-                # Combine historical operational evidence with the newly ingested negative evidence
-                # Filter historical evidence to operational pre-seizure reporting (prior to Dec 2020) if evaluating post-seizure takedown
-                hist_supp = [e for e in evidence_results if e.get("label") == "entailment"]
-                if any(e.get("publication_date") == "2020-10-15" for e in hist_supp):
-                    # Prioritize the active operational campaign reporting (Intel 471, 2020-10-15) over retrospective or secondary articles
-                    pre_seizure_supp = [e for e in hist_supp if e.get("publication_date") and e.get("publication_date") <= "2020-10-15"]
-                    fused_evidence = (pre_seizure_supp or hist_supp) + [uploaded_ev_record]
-                else:
-                    fused_evidence = evidence_results + [uploaded_ev_record]
+                # Combine historical corpus evidence with the newly ingested negative evidence
+                fused_evidence = evidence_results + [uploaded_ev_record]
 
                 # Run ContextResolver to evaluate temporal divergence across fused evidence
                 from src.verification.context_resolver import ContextResolver
                 res_obj = ContextResolver.resolve(claim=claim_text, evidence_results=fused_evidence)
                 resolution = res_obj.to_dict()
 
-                # Update aggregate counts and status
-                status = "CONFLICTING_EVIDENCE" if res_obj.is_conflict else ("CONTRADICTED" if pred_label == "contradiction" else "SUPPORTED")
-                supporting_count = len([e for e in fused_evidence if e.get("label") == "entailment"])
+                # Use pipeline's ClaimAggregator to produce consistent status verdict
+                agg = self.pipeline.claim_aggregator.aggregate(claim=claim_text, results=fused_evidence)
+                agg_status = agg.status.value if hasattr(agg.status, "value") else str(agg.status)
+                status = "CONFLICTING_EVIDENCE" if res_obj.is_conflict else agg_status
+                supporting_count = agg.supporting_count
                 non_duplicate_supporting_count = len([e for e in fused_evidence if e.get("label") == "entailment" and not e.get("is_duplicate")])
-                contradicting_count = len([e for e in fused_evidence if e.get("label") == "contradiction"])
-                neutral_count = len([e for e in fused_evidence if e.get("label") == "neutral"])
+                contradicting_count = agg.contradicting_count
+                neutral_count = agg.neutral_count
                 unique_supporting_sources = sorted(list({e.get("source") for e in fused_evidence if e.get("label") == "entailment" and e.get("source")}))
                 evidence_results = fused_evidence
 

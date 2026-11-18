@@ -7,10 +7,11 @@ Guarantees 0% document leakage and 0% sentence leakage.
 
 import json
 import re
+import os
 from pathlib import Path
 from typing import List, Dict, Any
 
-INPUT_PATH = Path(r"C:\Users\njosh\Downloads\ner_predictions_test.jsonl")
+INPUT_PATH = Path(os.environ.get("ANNOCTR_TEST_JSONL", "data/annoctr_source/ner_test.jsonl"))
 GOLD_TEST_PATH = Path("data/benchmark/annoctr_gold_standard.json")
 OUTPUT_TRAIN_PATH = Path("data/benchmark/annoctr_train_split.json")
 

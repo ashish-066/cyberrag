@@ -2,9 +2,12 @@
 from __future__ import annotations
 import json
 import re
+import logging
 from pathlib import Path
 from collections import defaultdict
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 def _load_jsonl(path: str | Path) -> list[dict[str, Any]]:
@@ -71,9 +74,9 @@ class GraphRAGRetriever:
                     self.entity_index[entity_id].append(assertion)
                     self.entity_index[entity_id.lower()].append(assertion)
 
-        print("Graph Retrieval initialized!")
-        print("Entities indexed:", len(self.entity_lookup))
-        print("Assertions loaded:", len(self.assertions))
+        logger.info("Graph Retrieval initialized!")
+        logger.info("Entities indexed: %d", len(self.entity_lookup))
+        logger.info("Assertions loaded: %d", len(self.assertions))
 
     def match_entities(self, query: str) -> list[tuple[str, str]]:
         q = query.lower()

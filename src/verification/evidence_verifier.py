@@ -12,8 +12,14 @@ not ground-truth historical fact or multi-report conflict resolution.
 """
 from __future__ import annotations
 import logging
+import os
+import re
 from dataclasses import dataclass, asdict
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
+
+# Enforce offline cache usage to prevent socket DNS lookups in sandboxed/offline environments
+os.environ.setdefault("HF_HUB_OFFLINE", "1")
+os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
 
 try:
     import truststore
@@ -48,6 +54,7 @@ class NLIPrediction:
     trust_level: Optional[str] = None
     is_duplicate: bool = False
     duplicate_of: Optional[str] = None
+    is_hedged: bool = False
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -68,6 +75,7 @@ class NLIPrediction:
             "trust_level": self.trust_level,
             "is_duplicate": self.is_duplicate,
             "duplicate_of": self.duplicate_of,
+            "is_hedged": self.is_hedged,
         }
 
 
@@ -172,6 +180,17 @@ class CTIEvidenceVerifier:
         p_neu = scores.get("neutral", 0.0)
         top_lbl = max(scores, key=scores.get) if scores else "neutral"
 
+        # Epistemic Hedging Detection: Cap certainty when evidence uses tentative/modal hedging
+        # Matches explicit hedging phrases ('might link', 'suspected', 'alleged', 'unconfirmed')
+        # Dropped standalone 'may' (avoids calendar month 'May 2021'), 'could', and 'potential'
+        is_hedged = bool(re.search(
+            r"\b((?:might|may|could|possibly)\s+(?:be\s+)?(?:link(?:ed)?|connect(?:ed)?|associat(?:ed)?)|suspected|suspects|alleged|allegedly|unconfirmed|tentative|tentatively|purported|purportedly|speculated|speculation|believed\s+to\s+be)\b",
+            ev_clean.lower(),
+        ))
+        if is_hedged and top_lbl == "entailment":
+            p_ent = min(p_ent, 0.60)
+            p_neu = max(p_neu, 1.0 - p_ent - p_con)
+
         return NLIPrediction(
             label=top_lbl,
             p_entailment=p_ent,
@@ -179,6 +198,7 @@ class CTIEvidenceVerifier:
             p_neutral=p_neu,
             evidence=ev_clean,
             claim=cl_clean,
+            is_hedged=is_hedged,
         )
 
     def classify_batch(
@@ -207,6 +227,14 @@ class CTIEvidenceVerifier:
             p_neu = scores.get("neutral", 0.0)
             top_lbl = max(scores, key=scores.get) if scores else "neutral"
 
+            is_hedged = bool(re.search(
+                r"\b(might\s+link|may\s+link|could\s+link|might|may|could|possibly|potential|tentative|tentatively|suspected|unconfirmed|alleged|allegedly|purported|purportedly|speculated)\b",
+                str(e).lower(),
+            ))
+            if is_hedged and top_lbl == "entailment":
+                p_ent = min(p_ent, 0.60)
+                p_neu = max(p_neu, 1.0 - p_ent - p_con)
+
             predictions.append(
                 NLIPrediction(
                     label=top_lbl,
@@ -215,6 +243,7 @@ class CTIEvidenceVerifier:
                     p_neutral=p_neu,
                     evidence=str(e),
                     claim=str(c),
+                    is_hedged=is_hedged,
                 )
             )
         return predictions

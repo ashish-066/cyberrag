@@ -83,3 +83,11 @@ outputs/reports/threatactor_false_positives_dev*.csv
 outputs/reports/suspicious_entities.json
 outputs/reports/relation_sample_100_audit.json
 outputs/reports/annoctr_ner_evaluation_baseline_frozen.json
+
+# Local configuration and virtual environments
+/config.yaml
+.venv/
+venv/
+.pytest_cache/
+.hypothesis/
+dist/

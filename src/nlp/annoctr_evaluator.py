@@ -141,7 +141,6 @@ class AnnoCTREvaluator:
         Path("data/annoctr_source/ner_train.jsonl"),
         Path("data/ner_train.jsonl"),
         Path("ner_train.jsonl"),
-        Path("C:/Users/njosh/Downloads/ner_predictions_train.jsonl"),
         Path("data/benchmark/annoctr_train_split.json"),
     ]
 
@@ -155,7 +154,6 @@ class AnnoCTREvaluator:
         Path("data/annoctr_source/ner_test.jsonl"),
         Path("data/ner_test.jsonl"),
         Path("ner_test.jsonl"),
-        Path("C:/Users/njosh/Downloads/ner_predictions_test.jsonl"),
         Path("data/benchmark/annoctr_gold_standard.json"),
     ]
 
@@ -400,6 +398,11 @@ class AnnoCTREvaluator:
                 "boundary_false_positives": hybrid_res["false_positives_sample"],
             },
         }
+
+        # Export report to cache path
+        cache_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(cache_file, "w", encoding="utf-8") as f:
+            json.dump(report, f, indent=2)
 
         # Print clean terminal report
         self._print_terminal_summary(report)

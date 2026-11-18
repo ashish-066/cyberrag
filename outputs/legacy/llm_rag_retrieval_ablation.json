@@ -1,0 +1,40 @@
+{
+  "metadata": {
+    "total_queries": 33,
+    "positive_benchmark_queries": 30,
+    "negative_control_queries": 3,
+    "timestamp": "2026-11-16 22:54:59"
+  },
+  "configurations": {
+    "Version_A_Standard_Hybrid_RAG": {
+      "name": "Original query + Dense + BM25 + KG",
+      "recall@5": 0.6056,
+      "recall@10": 0.6056,
+      "mrr": 0.455,
+      "evidence_relevance_precision": 0.12,
+      "avg_latency_seconds": 0.2839
+    },
+    "Version_B_LLM_Query_Rewriting": {
+      "name": "LLM query rewriting + existing retrieval",
+      "recall@5": 0.5389,
+      "recall@10": 0.5722,
+      "mrr": 0.4631,
+      "evidence_relevance_precision": 0.1807,
+      "avg_latency_seconds": 0.5911
+    },
+    "Version_C_Autonomous_Agentic_RAG": {
+      "name": "LLM decomposition + rewriting + agentic retrieval (CyberRAG)",
+      "recall@5": 0.4889,
+      "recall@10": 0.4889,
+      "mrr": 0.5111,
+      "evidence_relevance_precision": 0.5667,
+      "avg_latency_seconds": 1.1788
+    }
+  },
+  "deliberate_ablation_insights": {
+    "recall_gain_B_over_A": "+-6.7%",
+    "mrr_gain_B_over_A": "+0.8%",
+    "evidence_precision_gain_C_over_A": "+44.7%",
+    "noise_screening_in_negative_controls": "100.0% of ungrounded entities successfully screened out (0 false contradictions passed to verifier)"
+  }
+}

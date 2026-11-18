@@ -20,11 +20,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy repository contents
 COPY . .
 
-# Expose Streamlit default port
-EXPOSE 8501
+# Expose Workbench (8080) and Streamlit (8501) ports
+EXPOSE 8080 8501
 
-# Health check for cloud orchestrators
-HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
+# Health check
+HEALTHCHECK CMD curl --fail http://localhost:8080/api/health || exit 1
 
-# Launch Streamlit dashboard
-ENTRYPOINT ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# Launch CyberRAG Analyst Workbench by default
+ENTRYPOINT ["python", "demo/server.py"]

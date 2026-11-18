@@ -5,10 +5,11 @@ Preserves original token sequences, gold BIO entity spans, and document provenan
 import json
 import re
 import random
+import os
 from pathlib import Path
 from typing import List, Dict, Any
 
-INPUT_PATH = Path(r"C:\Users\njosh\Downloads\ner_predictions_test.jsonl")
+INPUT_PATH = Path(os.environ.get("ANNOCTR_TEST_JSONL", "data/annoctr_source/ner_test.jsonl"))
 OUTPUT_PATH = Path("data/benchmark/annoctr_gold_standard.json")
 
 TAG_TO_CATEGORY = {

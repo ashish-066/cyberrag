@@ -1,28 +1,26 @@
-"""Master Test Runner for CyberRAG.
+"""Master Test Runner for CyberRAG / whentrue-cti.
 
-Discovers and executes all 60 unit tests across all test suites:
-- test_preprocessor.py: Indicator refanging, unicode normalization, segmentation provenance
-- test_ner.py: Entity normalization and gazetteer extraction
-- test_relation_extractor.py: Typed relationship extraction
-- test_knowledge_graph.py: NetworkX graph construction, exports, and analytics
-- test_annoctr.py: Real-world Bosch Research AnnoCTR benchmark evaluation
-- test_unseen_cti.py: Zero-shot generalization and novel entity discovery on 4 fresh reports
-- test_retrieval_helpers.py: Retrieval evaluation metrics (Recall@K, MRR)
-- test_claim_aggregation.py: Evidence aggregation and multi-publisher consensus
-- test_provenance.py: Sentence- and paragraph-level metadata persistence
-- test_nli_verifier.py: DeBERTa cross-encoder NLI verification with raw softmax scores
-- test_context_resolver.py: 4-tier contradiction taxonomy classification
-- test_integrated_verification.py: End-to-end fused GraphRAG verification
-- test_negative_assertions_temporal.py: Negative assertion provenance and temporal supersedence
-- test_v2_relation_regression.py: Regression testing for vendor and spatial trigger suppression
+Discovers every tests/**/test_*.py suite (unittest and pytest-style classes both
+subclass unittest.TestCase) and runs them:
+- tests/test_*.py        legacy v5 suites: preprocessing, NER, relations, KG, retrieval metrics, NLI, resolver
+- tests/core/            service, aliases, planner (40-question set), data and hardening regressions
+- tests/conditions/      config/data integrity, uploads, sessions, concurrency, fuzz, prompt-injection set
+- tests/mcp/             MCP contract and security (S1-S8)
+- tests/e2e/             real-model end-to-end checks (skipped if models are not cached or CTI_RUN_REAL=0)
+
+Prefer `python -m pytest`; this runner exists for environments without pytest.
 """
 
+import os
 import sys
 import unittest
 
+os.environ["HF_HUB_OFFLINE"] = "1"
+os.environ["TRANSFORMERS_OFFLINE"] = "1"
+
 if __name__ == "__main__":
     loader = unittest.TestLoader()
-    suite = loader.discover(start_dir="tests", pattern="test_*.py")
+    suite = loader.discover(start_dir="tests", pattern="test_*.py", top_level_dir=".")
     runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(suite)
     sys.exit(0 if result.wasSuccessful() else 1)
