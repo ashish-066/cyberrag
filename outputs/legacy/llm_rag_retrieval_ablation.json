@@ -1,4 +1,5 @@
 {
+  "_archived_warning": "DO NOT CITE. Exploratory v5 prototype experiment archived due to methodological circularity (shared alias dictionary in gold labels and retrieval expansion). Preserved strictly for historical transparency. See outputs/legacy/README.md.",
   "metadata": {
     "total_queries": 33,
     "positive_benchmark_queries": 30,
