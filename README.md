@@ -259,6 +259,9 @@ streamlit run app.py
 ```
 Open `http://localhost:8501` in your browser. Select any of the preset scenarios or upload an arbitrary CTI PDF/TXT report.
 
+### Verdict Time Machine
+Every verdict in the workbench gets a **time machine**: a date slider whose stops are the publication dates of the evidence. Each stop re-runs verification with `as_of_date`, using only reports published on or before that day, and shows which passages appeared on that date; the play button replays the whole history. It answers "what did the reports say when this decision was made?". The time machine uses the core `VerificationService` (the same engine as the API and MCP server), whose conflict label can differ from the workbench agent's banner. Endpoint: `GET /api/v1/timetravel` (returns the stops; each is fetched with `POST /api/v1/verify_claim` and `as_of_date`).
+
 ### Analyst Tools (Workbench + REST API)
 The workbench (`python demo/server.py`) adds these analyst tools on top of claim verification. Each one is also available as a REST endpoint under `/api/v1` (interactive docs at `http://127.0.0.1:8080/docs`).
 
@@ -278,7 +281,7 @@ The same `VerificationService` also backs `POST /api/v1/verify_claim`, `/verify_
 
 ### Run the Test Suite
 ```bash
-# Full suite (140 tests: unit, real-model end-to-end, REST API)
+# Full suite (144 tests: unit, real-model end-to-end, REST API)
 python -m pytest
 
 # Legacy unittest runner (the unittest-style subset)

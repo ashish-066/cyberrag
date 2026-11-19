@@ -152,6 +152,7 @@ def test_warming_up_returns_503():
     def not_ready():
         raise api_v1.ServiceWarmingUp("loading")
 
+    previous = api_v1._provider
     api_v1.set_service_provider(not_ready)
     try:
         with TestClient(app) as c:
@@ -160,4 +161,14 @@ def test_warming_up_returns_503():
             # IOC extraction needs no models, so it keeps working while the service loads
             assert c.post("/api/v1/iocs", json={"text": "1.1.1.1"}).status_code == 200
     finally:
-        api_v1.set_service_provider(None)
+        api_v1.set_service_provider(previous)
+
+
+def test_timetravel_checkpoints_and_snapshot(client):
+    d = client.get("/api/v1/timetravel", params={"subject": "Emotet", "relation": "USES", "object": "TrickBot"}).json()
+    stops = d["checkpoints"]
+    assert stops == sorted(stops) and len(stops) >= 2
+    first = client.post("/api/v1/verify_claim", json={"subject": "Emotet", "relation": "USES", "object": "TrickBot", "as_of_date": stops[0]}).json()
+    last = client.post("/api/v1/verify_claim", json={"subject": "Emotet", "relation": "USES", "object": "TrickBot", "as_of_date": stops[-1]}).json()
+    assert len(first["supporting"]) + len(first["contradicting"]) <= len(last["supporting"]) + len(last["contradicting"])
+    assert all(e["pub_date"] <= stops[0] for e in first["supporting"] + first["contradicting"] if e["pub_date"])

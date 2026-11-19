@@ -263,3 +263,26 @@ def navigator_report(req: ReportLayerRequest):
     layer = build_layer(req.title, rows, source_label="uploaded report",
                         note="Techniques were extracted automatically from the uploaded report; review before use.")
     return _download(json.dumps(layer, indent=2), _safe_filename(f"{req.title}_attack_layer", "json"), "application/json")
+
+
+# ------------------------------------------------------------------ time machine
+@router.get("/timetravel")
+def timetravel(subject: str, relation: str, object: str, polarity: str = "positive"):  # noqa: A002
+    """Verdict today plus the evidence dates at which it can change (slider stops).
+
+    Each stop is then fetched with ``POST /verify_claim`` and ``as_of_date``.
+    """
+    from src.analyst.timemachine import checkpoints
+
+    def run():
+        v = _svc().verify_claim(subject, relation, object, polarity=polarity, use_llm_summary=False)
+        stops = checkpoints(v)
+        return {
+            "claim": v.claim.model_dump(), "polarity": v.polarity, "today": {
+                "status": v.status, "support_tier": v.support_tier, "supporting": len(v.supporting),
+                "contradicting": len(v.contradicting), "conflict": v.conflict.model_dump(),
+            },
+            "checkpoints": stops,
+            "undated_evidence": sum(1 for e in v.supporting + v.contradicting if not e.pub_date),
+        }
+    return _call(run)

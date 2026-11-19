@@ -200,6 +200,26 @@ footer{border-top:1px solid var(--line);padding:18px 0 30px;color:var(--muted);f
 .b-NEW_INTEL{background:#e0f0fa;color:#0b5a82}
 .b-INSUFFICIENT_EVIDENCE,.b-LOOKUP{background:var(--slate-bg);color:var(--slate)}
 
+/* time machine */
+.tm .body{display:grid;gap:14px}
+.tmtop{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.tmdate{font-size:22px;font-weight:750;min-width:180px}
+.tmst{font-size:12px;font-weight:800;letter-spacing:.06em;border-radius:999px;padding:5px 12px;border:1.5px solid currentColor}
+.tmcount{color:var(--muted);font-size:13.5px}
+.tmrow{display:flex;gap:12px;align-items:center}
+.tmrow input[type=range]{flex:1;accent-color:var(--navy);height:28px}
+.play{width:40px;height:40px;border-radius:50%;border:0;background:var(--navy);color:#fff;display:grid;place-items:center;flex:none}
+.play:disabled{opacity:.5}
+.ticks{position:relative;height:30px;margin:0 9px 0 61px}
+.ticks i{cursor:pointer}
+.ticks span{position:absolute;top:0;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10.5px;color:var(--muted);white-space:nowrap}
+.ticks span i{width:10px;height:10px;border-radius:50%;background:#cbd5e1;border:2px solid #fff;box-shadow:0 0 0 1px #cbd5e1}
+.ticks span.lbl-off em{display:none}
+.ticks em{font-style:normal}
+.ticks span:last-child em{transform:translateX(-30%)}
+.newev{display:grid;gap:8px}
+.newev .ev{margin:0}
+
 /* entity drawer */
 .drawer{position:fixed;top:0;right:0;bottom:0;width:min(420px,100%);background:#fff;box-shadow:-20px 0 60px -20px rgba(0,0,0,.35);transform:translateX(105%);transition:transform .25s;z-index:55;display:flex;flex-direction:column}
 .drawer{visibility:hidden;transition:transform .25s,visibility 0s .25s}
@@ -402,7 +422,7 @@ async function loadHealth(){
 let busy=false;
 async function run(query){
   query=(query||$("q").value).trim(); if(!query||busy) return;
-  $("q").value=query; busy=true; $("go").disabled=true;
+  $("q").value=query; busy=true; $("go").disabled=true; tm=null;
   try{history.replaceState(null,"","?q="+encodeURIComponent(query))}catch(e){}
   const t0=Date.now();
   $("out").innerHTML=`<div class="panel skeleton"><div class="running"><div class="spin"></div><span>Checking “${esc(query)}” <span id="el" class="mono" style="color:var(--muted);font-weight:500">0s</span></span></div><div style="margin-top:18px"><div class="sk" style="width:60%"></div><div class="sk" style="width:90%"></div><div class="sk" style="width:75%"></div></div></div>`;
@@ -497,6 +517,9 @@ function render(d,secs){
       <div class="legend"><span><i style="background:var(--green)"></i>Supporting report</span><span><i style="background:var(--red)"></i>Contradicting report</span>${cr&&cr.threshold?`<span>Gap needed to call it “superseded”: ${cr.threshold} days</span>`:""}</div></section>`;
   }
 
+  if(cp.r){
+    html+=`<section class="panel tm" id="tm" style="margin-top:18px"><h3><span>Time machine <span style="text-transform:none;letter-spacing:0;font-weight:500">what did the reports say on a given date?</span></span><span style="text-transform:none;letter-spacing:0;font-weight:500;font-size:12px">core verifier · same engine as the API</span></h3><div class="body" id="tmbody"><div class="running"><div class="spin"></div>Finding the dates the evidence was published…</div></div></section>`;
+  }
   html+=`<div class="grid"><div>
     <section class="panel"><h3><span>Evidence</span><div class="tabs"><button class="tab on" data-t="s" type="button">Supporting<span class="n">${sup.length}</span></button><button class="tab" data-t="c" type="button">Contradicting<span class="n">${con.length}</span></button></div></h3>
       <div class="body" id="evbody"></div></section>
@@ -523,6 +546,7 @@ function render(d,secs){
 
   $("brief").innerHTML=md(d.narrative||"");
   lastInv=d;
+  if(cp.r) initTimeMachine(cp);
   $("x-md").addEventListener("click",exportBrief);
   $("x-stix").addEventListener("click",exportStix);
   renderGraph(d.subgraph||{nodes:[],edges:[]},d.matched_entities||[]);
@@ -754,6 +778,72 @@ function renderBatch(d){
     const c=$("b-csv"); if(c) c.addEventListener("click",()=>withBusy(c,"…",async()=>{const r=await postJSON("/batch?format=csv",{text});saveBlob(await r.blob(),fileNameFrom(r,"batch.csv"))}));
   };
   lastBatch={html,bind}; $("t-res").innerHTML=html; bind();
+}
+
+/* ---------------- time machine ---------------- */
+const TM_STATUS={SUPPORTED:{l:"Supported",c:"var(--green)"},CONTRADICTED:{l:"Contradicted",c:"var(--red)"},CONFLICTING_EVIDENCE:{l:"Conflicting",c:"var(--red)"},INSUFFICIENT_EVIDENCE:{l:"No evidence yet",c:"var(--slate)"}};
+let tm=null;
+async function initTimeMachine(cp){
+  const myQuery=lastInv&&lastInv.query;
+  try{
+    const qs=new URLSearchParams({subject:cp.s,relation:cp.r,object:cp.o});
+    const d=await (await api("/timetravel?"+qs)).json();
+    if(!lastInv||lastInv.query!==myQuery||!$("tmbody")) return;
+    if(!d.checkpoints.length){ $("tmbody").innerHTML=`<div class="hint">No dated evidence for this claim, so there is no timeline to replay.</div>`; return; }
+    tm={claim:d.claim,stops:d.checkpoints,snaps:{},idx:d.checkpoints.length,playing:false,query:myQuery};
+    const n=tm.stops.length;
+    // ticks sit exactly under the slider stops (evenly spaced, like the range input); labels are thinned so they never overlap
+    const maxLabels=Math.max(2,Math.floor((($("tmbody").clientWidth||600)-70)/90));
+    const every=Math.max(1,Math.ceil((n+1)/maxLabels));
+    const ticks=[`<span style="left:0%"><i data-t="0"></i><em>before</em></span>`].concat(tm.stops.map((dt,i)=>{const k=i+1;const lab=k===n||(k%every===0&&n-k>=every/2);return `<span style="left:${(k/n*100).toFixed(2)}%" class="${lab?"":"lbl-off"}" title="${esc(fmtDate(dt))}"><i data-t="${k}"></i><em>${esc(fmtDate(dt))}</em></span>`}));
+    $("tmbody").innerHTML=`
+      <div class="tmtop"><div class="tmdate" id="tm-date">—</div><span class="tmst" id="tm-st">…</span><span class="tmcount" id="tm-count"></span></div>
+      <div class="tmrow"><button class="play" id="tm-play" type="button" aria-label="Replay the evidence over time"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg></button>
+        <input type="range" id="tm-r" min="0" max="${n}" step="1" value="${n}" aria-label="Date"></div>
+      <div class="ticks" id="tm-ticks">${ticks.join("")}</div>
+      <div><label style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)" id="tm-newl">Evidence published on this date</label><div class="newev" id="tm-new" style="margin-top:8px"></div></div>
+      <div class="hint">Each stop re-runs verification using only reports published on or before that date. The verdict can only change on these dates.</div>`;
+    $("tm-r").addEventListener("input",e=>tmGo(+e.target.value));
+    $("tm-ticks").querySelectorAll("i[data-t]").forEach(t=>t.addEventListener("click",()=>tmGo(+t.dataset.t)));
+    $("tm-play").addEventListener("click",tmPlay);
+    tmGo(n);
+    for(let i=n;i>=1;i--){ await tmFetch(i); if(!tm||tm.query!==myQuery) return; }
+  }catch(e){ if($("tmbody")) $("tmbody").innerHTML=`<div class="hint">Time machine unavailable: ${esc(e.message||e)}</div>`; }
+}
+async function tmFetch(i){
+  if(!tm||i===0||tm.snaps[i]) return tm&&tm.snaps[i];
+  const q=tm.query;
+  const v=await (await postJSON("/verify_claim",{subject:tm.claim.subject,relation:tm.claim.relation,object:tm.claim.object,polarity:tm.claim.polarity||"positive",as_of_date:tm.stops[i-1]})).json();
+  if(!tm||tm.query!==q) return null;
+  tm.snaps[i]=v;
+  const dot=document.querySelector(`#tm-ticks i[data-t="${i}"]`); const m=TM_STATUS[v.status]||TM_STATUS.INSUFFICIENT_EVIDENCE;
+  if(dot){dot.style.background=m.c;dot.style.boxShadow=`0 0 0 1px ${m.c}`}
+  if(tm.idx===i) tmShow(i);
+  return v;
+}
+function tmGo(i){ if(!tm||!$("tm-r")) return; tm.idx=i; $("tm-r").value=i; tmShow(i); if(i>0&&!tm.snaps[i]) tmFetch(i); }
+function tmShow(i){
+  const st=$("tm-st"); if(!st) return;
+  if(i===0){
+    $("tm-date").textContent="Before "+fmtDate(tm.stops[0]); const m=TM_STATUS.INSUFFICIENT_EVIDENCE;
+    st.textContent=m.l.toUpperCase(); st.style.color=m.c; $("tm-count").textContent="No report had mentioned this yet.";
+    $("tm-newl").style.display="none"; $("tm-new").innerHTML=""; return;
+  }
+  const dt=tm.stops[i-1]; $("tm-date").textContent=fmtDate(dt); $("tm-newl").style.display="";
+  const v=tm.snaps[i];
+  if(!v){st.textContent="CHECKING…";st.style.color="var(--muted)";$("tm-count").textContent="";$("tm-new").innerHTML='<div class="running" style="font-weight:500"><div class="spin"></div>Re-verifying with evidence up to this date…</div>';return}
+  const m=TM_STATUS[v.status]||TM_STATUS.INSUFFICIENT_EVIDENCE;
+  st.textContent=m.l.toUpperCase(); st.style.color=m.c;
+  const tier={SINGLE_SOURCE:"one publisher",CORROBORATED:"independent publishers",CONFLICTING:"conflicting",NONE:""}[v.support_tier]||"";
+  $("tm-count").textContent=`${v.supporting.length} supporting · ${v.contradicting.length} contradicting${tier?" · "+tier:""}${v.conflict&&v.conflict.type&&v.conflict.type!=="NO_CONFLICT"?" · "+v.conflict.type.replace(/_/g," ").toLowerCase():""}`;
+  const fresh=[...v.supporting.map(e=>({e,k:"s"})),...v.contradicting.map(e=>({e,k:"c"}))].filter(x=>(x.e.pub_date||"").slice(0,10)===dt);
+  $("tm-new").innerHTML=fresh.map(({e,k})=>`<div class="ev" style="--c:var(${k==="s"?"--green":"--red"})"><div class="top"><div><span class="src">${esc(e.publisher||"Unknown")}</span> ${e.synthetic?'<span class="tag sim">Simulated</span>':""}</div><span class="pill" style="background:var(${k==="s"?"--green-bg":"--red-bg"});color:var(${k==="s"?"--green":"--red"})">${k==="s"?"Supports":"Contradicts"}</span></div><div class="txt">${esc(cleanText(e.untrusted_text).slice(0,320))}${(e.untrusted_text||"").length>320?"…":""}</div></div>`).join("")||'<div class="hint">No new passage on this date (it was retrieved but not decisive).</div>';
+}
+async function tmPlay(){
+  if(!tm||tm.playing) return; tm.playing=true; const b=$("tm-play"); b.disabled=true; const q=tm.query;
+  const live=()=>tm&&tm.query===q;
+  try{ for(let i=0;live()&&i<=tm.stops.length;i++){ tmGo(i); if(i>0) await tmFetch(i); await new Promise(r=>setTimeout(r,i===0?700:1100)); } }
+  finally{ if(tm&&tm.query===q){tm.playing=false;b.disabled=false} }
 }
 
 /* ---------------- wire up ---------------- */

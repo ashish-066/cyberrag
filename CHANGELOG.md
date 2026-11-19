@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.0 - Verdict time machine
+
+### Added
+- Time machine on every workbench verdict (`src/analyst/timemachine.py`, `GET /api/v1/timetravel` + `verify_claim` with `as_of_date`): a slider and replay over the evidence publication dates, showing the verdict and the passages published at each date. Every contradicting date is always kept as a stop.
+- Tests: 4 more (144 total).
+
 ## 1.1.0 - Analyst tools
 
 ### Fixed
@@ -11,7 +17,7 @@
 - `/api/v1` REST API (`demo/api_v1.py`) over `VerificationService`: `stats`, `search`, `verify_claim`, `verify_question`, `entity/{name}`, `timeline`, `trace/{id}`, plus the analyst tools below. The workbench builds the service in the background after startup and shares its DeBERTa verifier (`build_service(settings, verifier=...)`), so no second NLI model is loaded. Endpoints answer `503 WARMING_UP` until it is ready; IOC extraction works immediately.
 - `src/analyst/`: report fact-check against the corpus, IOC extraction with refanging and reasoned exclusions (CSV / STIX 2.1 Indicators), batch claim verification (CSV), Markdown analyst brief, ATT&CK Navigator layer export.
 - Workbench UI: *Analyst tools* dialog (fact-check, IOCs, batch; paste or load a file), brief and STIX export buttons on every verdict, entity profile drawer on graph-node click with one-click verification of graph links and a Navigator layer download.
-- Tests: `test_analyst_tools.py` (32, no models), `test_api_v1.py` (16, real models), `test_manifest_hash.py` (4). Full suite: 140 passed.
+- Tests: `test_analyst_tools.py` (32, no models), `test_api_v1.py` (16, real models), `test_manifest_hash.py` (4). Full suite at this version: 140 passed.
 
 ## 1.0.0 - Stage 1: hardening + MCP server (built on CyberRAG v5)
 

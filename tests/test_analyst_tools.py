@@ -331,3 +331,36 @@ def test_factcheck_rejects_empty_text():
 
     with pytest.raises(CTIError):
         factcheck.factcheck_report(_FCService(), "   ")
+
+
+# ------------------------------------------------------------------ time machine
+from src.analyst import timemachine  # noqa: E402
+
+
+def _v(status="SUPPORTED", tier="SINGLE_SOURCE", hedged=False, conflict="NO_CONFLICT", sup_dates=(), con_dates=()):
+    from src.core.models import ClaimSpec, ClaimVerification, Conflict, EvidenceItem
+
+    mk = lambda d, i: EvidenceItem(evidence_id=f"e{i}_{d}", publisher="P", pub_date=d, untrusted_text="t")  # noqa: E731
+    return ClaimVerification(
+        verification_id="v", claim=ClaimSpec(subject="A", relation="USES", object="B"), status=status,
+        support_tier=tier, polarity="positive", hedged_only=hedged, conflict=Conflict(type=conflict),
+        supporting=[mk(d, i) for i, d in enumerate(sup_dates)], contradicting=[mk(d, 100 + i) for i, d in enumerate(con_dates)],
+        trace_id="t",
+    )
+
+
+def test_checkpoints_are_sorted_distinct_dates():
+    v = _v(sup_dates=("2021-01-02", "2020-05-01", "2020-05-01T10:00"), con_dates=("2021-06-01",))
+    assert timemachine.checkpoints(v) == ["2020-05-01", "2021-01-02", "2021-06-01"]
+
+
+def test_checkpoints_keep_every_contradiction_when_capped():
+    sup = tuple(f"2020-{m:02d}-01" for m in range(1, 13)) + tuple(f"2021-{m:02d}-01" for m in range(1, 13))
+    con = ("2020-07-15", "2021-03-15")
+    stops = timemachine.checkpoints(_v(sup_dates=sup, con_dates=con), limit=8)
+    assert len(stops) <= 8 and set(con) <= set(stops)
+    assert stops[0] == "2020-01-01" and stops[-1] == "2021-12-01" and stops == sorted(stops)
+
+
+def test_checkpoints_ignore_undated():
+    assert timemachine.checkpoints(_v(sup_dates=("",))) == []
