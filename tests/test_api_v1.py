@@ -172,3 +172,31 @@ def test_timetravel_checkpoints_and_snapshot(client):
     last = client.post("/api/v1/verify_claim", json={"subject": "Emotet", "relation": "USES", "object": "TrickBot", "as_of_date": stops[-1]}).json()
     assert len(first["supporting"]) + len(first["contradicting"]) <= len(last["supporting"]) + len(last["contradicting"])
     assert all(e["pub_date"] <= stops[0] for e in first["supporting"] + first["contradicting"] if e["pub_date"])
+
+
+def test_entities_list(client):
+    d = client.get("/api/v1/entities").json()
+    assert len(d["entities"]) == 277 and all(e["degree"] > 0 for e in d["entities"])
+
+
+def test_connect_real_graph(client):
+    r = client.post("/api/v1/connect", json={"a": "APT28", "b": "NATO"})
+    assert r.status_code == 200
+    d = r.json()
+    first = d["paths"][0]
+    assert first["length"] == 1 and first["hops"][0]["verdict"]["status"] == "SUPPORTED"
+    assert first["nodes"][0]["name"] == "APT28" and first["nodes"][-1]["name"] == "NATO"
+    assert client.post("/api/v1/connect", json={"a": "NoSuchThing123", "b": "APT28"}).status_code == 404
+
+
+def test_compare_real_graph_and_exports(client):
+    body = {"names": ["Emotet", "Trickbot", "Dridex"]}
+    d = client.post("/api/v1/compare", json=body).json()
+    assert [e["name"] for e in d["entities"]] == ["Emotet", "Trickbot", "Dridex"]
+    tech = next(g for g in d["groups"] if g["key"] == "techniques")
+    assert any(len(it["shared_by"]) == 3 for it in tech["items"])
+    csv = client.post("/api/v1/compare?format=csv", json=body)
+    assert csv.text.startswith("group,item,category,Emotet,Trickbot,Dridex")
+    layer = json.loads(client.post("/api/v1/compare?format=layer", json=body).text)
+    assert layer["techniques"] and max(t["score"] for t in layer["techniques"]) == 3
+    assert client.post("/api/v1/compare", json={"names": ["Emotet"]}).status_code == 400

@@ -364,3 +364,112 @@ def test_checkpoints_keep_every_contradiction_when_capped():
 
 def test_checkpoints_ignore_undated():
     assert timemachine.checkpoints(_v(sup_dates=("",))) == []
+
+
+# ------------------------------------------------------------------ connection finder & comparison
+from src.analyst import graphtools  # noqa: E402
+
+
+class _GraphService:
+    """Tiny graph: A -USES-> T <-USES- B -TARGETS-> X ; A -TARGETS-> HUB <-TARGETS- (many)."""
+
+    def __init__(self):
+        nodes = [("ThreatActor::A", "A"), ("ThreatActor::B", "B"), ("Tool::T", "T"), ("Organization::X", "X"),
+                 ("Organization::HUB", "HUB"), ("ThreatActor::C", "C"), ("Technique::T1566 - Phishing", "T1566 - Phishing"),
+                 ("Malware::Lonely", "Lonely")]
+        nodes += [(f"ThreatActor::H{i}", f"H{i}") for i in range(8)]
+        links = [
+            ("ThreatActor::A", "Tool::T", "USES"), ("ThreatActor::B", "Tool::T", "USES"),
+            ("ThreatActor::B", "Organization::X", "TARGETS"), ("ThreatActor::A", "Organization::HUB", "TARGETS"),
+            ("ThreatActor::C", "Organization::HUB", "TARGETS"), ("ThreatActor::A", "Technique::T1566 - Phishing", "USES_TECHNIQUE"),
+            ("ThreatActor::B", "Technique::T1566 - Phishing", "USES_TECHNIQUE"),
+        ] + [(f"ThreatActor::H{i}", "Organization::HUB", "TARGETS") for i in range(8)]
+        self.nodes = {nid: {"id": nid, "name": name, "category": nid.split("::")[0], "mention_count": 3} for nid, name in nodes}
+        by = {}
+        for s, t, r in links:
+            l = {"source": s, "target": t, "relation_type": r, "evidence_text": f"{s} {r} {t}", "source_publisher": "V",
+                 "publication_date": "2021-01-01", "report_id": "R", "sources": ["V"], "evidence_count": 1}
+            by.setdefault(s, []).append(l)
+            by.setdefault(t, []).append(l)
+        self.idx = {"nodes": self.nodes, "links": by}
+        self.aliases = SimpleNamespace(resolve=lambda name: name)
+        self.verified = []
+
+    def _graph(self):
+        return self.idx
+
+    def _find_node(self, name):
+        return next((n for n in self.nodes.values() if n["name"].lower() == name.lower()), None)
+
+    def verify_claim(self, s, r, o, use_llm_summary=True):
+        self.verified.append((s, r, o))
+        return _v(status="SUPPORTED" if s == "B" else "INSUFFICIENT_EVIDENCE", tier="SINGLE_SOURCE" if s == "B" else "NONE")
+
+    def get_entity(self, name):
+        return SimpleNamespace(mitre_id=None, aliases=[], first_seen=None, last_seen=None)
+
+
+def test_connections_prefer_specific_links_over_hubs():
+    svc = _GraphService()
+    r = graphtools.find_connections(svc, "A", "X", max_paths=3)
+    first = r["paths"][0]
+    assert [n["name"] for n in first["nodes"]] == ["A", "T", "B", "X"] or [n["name"] for n in first["nodes"]] == ["A", "T1566 - Phishing", "B", "X"]
+    assert all("HUB" not in [n["name"] for n in p["nodes"]] for p in r["paths"][:2])
+    hop = first["hops"][0]
+    assert hop["subject"] == "A" and hop["forward"] is True and hop["publisher"] == "V"
+    back = first["hops"][1]
+    assert back["subject"] == "B" and back["forward"] is False  # B USES T, walked backwards
+    assert first["confirmed_hops"] == sum(1 for h in first["hops"] if h["subject"] == "B")
+
+
+def test_connections_verify_each_hop_once():
+    svc = _GraphService()
+    graphtools.find_connections(svc, "A", "X", max_paths=3)
+    assert len(svc.verified) == len(set(svc.verified))
+
+
+def test_connections_no_path_and_errors():
+    from src.core.errors import EntityNotFoundError, InvalidInputError
+
+    svc = _GraphService()
+    assert graphtools.find_connections(svc, "A", "Lonely")["paths"] == []
+    with pytest.raises(EntityNotFoundError):
+        graphtools.find_connections(svc, "A", "Nobody")
+    with pytest.raises(InvalidInputError):
+        graphtools.find_connections(svc, "A", "a")
+    r = graphtools.find_connections(svc, "A", "X", max_hops=1)
+    assert r["paths"] == []  # shortest is 3 hops
+
+
+def test_compare_shared_and_unique():
+    svc = _GraphService()
+    c = graphtools.compare_entities(svc, ["A", "B"])
+    groups = {g["key"]: g for g in c["groups"]}
+    uses = {it["name"]: it["shared_by"] for it in groups["uses"]["items"]}
+    assert uses == {"T": ["A", "B"]}
+    tech = groups["techniques"]["items"][0]
+    assert tech["name"] == "T1566 - Phishing" and tech["shared_by"] == ["A", "B"]
+    targets = {it["name"]: it["shared_by"] for it in groups["targets"]["items"]}
+    assert targets == {"HUB": ["A"], "X": ["B"]}
+    assert c["shared_all"] == 2 and c["pairs"][0]["shared"] == 2
+    assert groups["uses"]["items"][0]["evidence"]["A"][0]["publisher"] == "V"
+
+
+def test_compare_validation_and_exports():
+    from src.core.errors import InvalidInputError
+
+    svc = _GraphService()
+    with pytest.raises(InvalidInputError):
+        graphtools.compare_entities(svc, ["A"])
+    with pytest.raises(InvalidInputError):
+        graphtools.compare_entities(svc, ["A", "a"])
+    c = graphtools.compare_entities(svc, ["A", "B", "C"])
+    csv_lines = graphtools.comparison_csv(c).splitlines()
+    assert csv_lines[0] == "group,item,category,A,B,C"
+    layer = graphtools.overlap_layer(c)
+    assert [(t["techniqueID"], t["score"]) for t in layer["techniques"]] == [("T1566", 2)]
+
+
+def test_list_entities_only_linked():
+    names = {e["name"] for e in graphtools.list_entities(_GraphService())}
+    assert "Lonely" not in names and {"A", "B", "HUB"} <= names

@@ -286,3 +286,57 @@ def timetravel(subject: str, relation: str, object: str, polarity: str = "positi
             "undated_evidence": sum(1 for e in v.supporting + v.contradicting if not e.pub_date),
         }
     return _call(run)
+
+
+# ------------------------------------------------------------------ connection finder & comparison
+class ConnectRequest(BaseModel):
+    a: str
+    b: str
+    max_hops: int = 4
+
+
+class CompareRequest(BaseModel):
+    names: List[str]
+
+
+@router.get("/entities")
+def entities():
+    from src.analyst.graphtools import list_entities
+
+    def run():
+        svc = _svc()
+        cached = getattr(svc, "_entity_list_cache", None)
+        if cached is None:
+            cached = list_entities(svc)
+            svc._entity_list_cache = cached
+        return {"entities": cached}
+    return _call(run)
+
+
+@router.post("/connect")
+def connect(req: ConnectRequest):
+    from src.analyst.graphtools import find_connections
+
+    return _call(lambda: find_connections(_svc(), req.a, req.b, max_hops=req.max_hops))
+
+
+@router.post("/compare")
+def compare(req: CompareRequest, format: str = "json"):  # noqa: A002
+    from src.analyst.graphtools import compare_entities, comparison_csv, overlap_layer
+    from src.analyst.navigator import tactic_map
+
+    def run():
+        svc = _svc()
+        cmp = compare_entities(svc, req.names)
+        label = "_vs_".join(e["name"] for e in cmp["entities"])
+        if format == "csv":
+            return _download(comparison_csv(cmp), _safe_filename(f"compare_{label}", "csv"), "text/csv; charset=utf-8")
+        if format == "layer":
+            registry = getattr(svc, "_registry_cache", None)
+            if registry is None:
+                registry = json.loads(svc.settings.registry_path.read_text(encoding="utf-8"))
+                svc._registry_cache = registry
+            layer = overlap_layer(cmp, tactic_map(registry))
+            return _download(json.dumps(layer, indent=2), _safe_filename(f"{label}_attack_overlap", "json"), "application/json")
+        return cmp
+    return _call(run)

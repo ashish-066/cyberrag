@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.0 - Connection finder and comparison
+
+### Added
+- `src/analyst/graphtools.py`: connection finder (weighted shortest simple paths over the positive graph relations, hub-penalised, each hop re-verified with the NLI pipeline and cached per request) and 2-3 entity comparison (uses / used by / targets / targeted by / techniques / exploits, shared vs unique, pairwise overlap, CSV and ATT&CK overlap layer).
+- Endpoints: `GET /api/v1/entities`, `POST /api/v1/connect`, `POST /api/v1/compare`.
+- Workbench: *Connect entities* and *Compare* views (autocomplete, highlighted paths on the graph, comparison matrix with source sentences; every hop and cell opens its investigation).
+- Tests: 9 more (153 total).
+
 ## 1.2.0 - Verdict time machine
 
 ### Added
